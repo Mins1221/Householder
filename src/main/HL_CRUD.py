@@ -99,3 +99,41 @@ def delete(key):
     conn.commit()
     c.close()
     conn.close()
+
+
+def selectMonthlySum(year_month):
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute("""
+        SELECT
+            IFNULL(SUM(revenue), 0),
+            IFNULL(SUM(expense), 0)
+        FROM ledger
+        WHERE substr(date, 1, 7) = ?
+    """, (year_month,))
+
+    result = c.fetchone()
+
+    c.close()
+    conn.close()
+
+    return result  # (revenue_sum, expense_sum)
+
+def selectMonthList():
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute('''
+        SELECT DISTINCT substr(date, 1, 7)
+        FROM ledger
+        ORDER BY 1
+    ''')
+
+    rows = c.fetchall()
+
+    c.close()
+    conn.close()
+
+    return [row[0] for row in rows]
+

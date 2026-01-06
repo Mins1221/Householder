@@ -10,6 +10,9 @@
 import wx
 import wx.xrc
 import wx.adv
+from . import HL_CRUD
+
+
 
 from main import HL_CRUD
 from main.barChart import Barchart
@@ -48,7 +51,42 @@ class MyFrame ( wx.Frame ):
         
         
         gbSizer1.Add( bSizer24, wx.GBPosition( 1, 1 ), wx.GBSpan( 1, 5 ), wx.EXPAND, 5 )
-        
+
+        # ===== 월별 합계 선택 =====
+        bSizerMonth = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.lblMonth = wx.StaticText(self, wx.ID_ANY, u"월 선택")
+        self.lblMonth.SetFont(wx.Font(11, 70, 90, 90, False, "Consolas"))
+        bSizerMonth.Add(self.lblMonth, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        months = HL_CRUD.selectMonthList()
+        if not months:
+            months = ['데이터 없음']
+
+        self.cboMonth = wx.ComboBox(
+            self,
+            choices=months,
+            style=wx.CB_READONLY
+        )
+
+
+        self.cboMonth.SetSelection(0)
+        self.cboMonth.SetFont(wx.Font(11, 70, 90, 90, False, "Consolas"))
+        bSizerMonth.Add(self.cboMonth, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        self.btnMonthlySum = wx.Button(self, wx.ID_ANY, u"월별 합계 조회")
+        self.btnMonthlySum.SetFont(wx.Font(11, 70, 90, 90, False, "Consolas"))
+        bSizerMonth.Add(self.btnMonthlySum, 0, wx.ALL, 5)
+
+        # 월별 합계 선택 영역 배치
+        gbSizer1.Add(
+            bSizerMonth,
+            wx.GBPosition(2, 1),   # 날짜 바로 아래 줄
+            wx.GBSpan(1, 5),
+            wx.EXPAND,
+            5
+        )
+
         bSizer3 = wx.BoxSizer( wx.VERTICAL )
         
         self.m_staticText16 = wx.StaticText( self, wx.ID_ANY, u"수입 입력부", wx.DefaultPosition, wx.DefaultSize, 0 )
