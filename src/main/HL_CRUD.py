@@ -1,142 +1,101 @@
-'''
-Created on 2021. 7. 22.
-
-SQLite의 CRUD (C - Create(or Insert), R - Select, U - Update, D - Delete)
-각 기능을 함수로 만들 수 있다.
-
-@author: pc356
-'''
 import sqlite3
+import os
+
+# === DB 경로 고정 ===
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "household_Ledger.db")
+
+
+def get_connection():
+    return sqlite3.connect(DB_PATH)
+
 
 def createTable():
-    # connection 객체 생성
-    conn = sqlite3.connect('household_Leger.db') # isolation_level = None 생략
-    
-    # cursor 생성
+    conn = get_connection()
     c = conn.cursor()
-    c.execute('''
-        create table if not exists ledger
-        (serialNo integer primary key Autoincrement,
-         date text,
-         section text,
-         title text,
-         revenue text,
-         expense text,
-         remark text)
-    ''')
-    # isolation_level = None 생략 - cursor, connection 객체 close()
-    conn.commit()
-    
-    c.close()
-    
-    conn.close()
-    
-    pass
 
-# insert할 매개 변수    
-def insertData(date, section, title, revenue, expense, remark):
-    conn = sqlite3.connect('household_Leger.db')
-    
-    c = conn.cursor()
-    c.execute('''
-        insert into ledger(date, section, title, revenue, expense, remark)
-        values(?, ?, ?, ?, ?, ?)
-    ''',(date, section, title, revenue, expense, remark))# 매개 변수를 질의문에 넣는 방법
-    
-    # isolation_level = None 생략 - cursor, connection 객체 close()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS ledger (
+            serialNo INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT,
+            section TEXT,
+            title TEXT,
+            revenue INTEGER,
+            expense INTEGER,
+            remark TEXT
+        )
+    """)
+
     conn.commit()
-    
     c.close()
-    
     conn.close()
-    
-    pass
+
+
+# 🔥 프로그램 시작 시 무조건 테이블 생성
+createTable()
+
+
+def insertData(date, section, title, revenue, expense, remark):
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute("""
+        INSERT INTO ledger(date, section, title, revenue, expense, remark)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (date, section, title, revenue, expense, remark))
+
+    conn.commit()
+    c.close()
+    conn.close()
+
 
 def insertManyData(tupleData):
-    conn = sqlite3.connect('household_Leger.db')
-    
+    conn = get_connection()
     c = conn.cursor()
-    c.executemany('''
-        insert into ledger(date, section, title, revenue, expense, remark)
-        values(?, ?, ?, ?, ?, ?)
-    ''',tupleData)# 매개 변수를 질의문에 넣는 방법
-    
-    # isolation_level = None 생략 - cursor, connection 객체 close()
+
+    c.executemany("""
+        INSERT INTO ledger(date, section, title, revenue, expense, remark)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, tupleData)
+
     conn.commit()
-    
     c.close()
-    
     conn.close()
-    
-    pass
+
 
 def selectAll():
-    conn = sqlite3.connect('household_Leger.db')
-
+    conn = get_connection()
     c = conn.cursor()
-    c.execute('select * from ledger')
-    
+
+    c.execute("SELECT * FROM ledger")
     rows = c.fetchall()
-    
-    # isolation_level = None 생략 - cursor, connection 객체 close()
-    conn.commit()
-    
+
     c.close()
-    
     conn.close()
-    
     return rows
 
-    pass
 
-def select(key):
-    conn = sqlite3.connect('household_Leger.db')
-
+def update(vo):
+    conn = get_connection()
     c = conn.cursor()
-    c.execute('select * from ledger')
-    
-    rows = c.fetchall()
-    
-    # isolation_level = None 생략 - cursor, connection 객체 close()
-    conn.commit()
-    
-    c.close()
-    
-    conn.close()
-    
-    return rows
 
-    pass
+    c.execute("""
+        UPDATE ledger
+        SET date = ?, section = ?, title = ?, revenue = ?, expense = ?, remark = ?
+        WHERE serialNo = ?
+    """, vo)
 
-# vo는 dict로 만들어서 보냄
-def update(vo): # vo는 tuple 형식임
-    conn = sqlite3.connect('household_Leger.db')
-    
-    c = conn.cursor()
-    c.execute('''
-        update ledger set date = ?, section = ?, title = ?, revenue = ?, expense = ?, remark = ? where serialNo = ?
-    ''',vo) # vo - tuple 형식(dict일 경우 복잡함.), 유의
-    
-     # isolation_level = None 생략 - cursor, connection 객체 close()
     conn.commit()
-    
     c.close()
-    
     conn.close()
-    
-    pass
+
 
 def delete(key):
-    conn = sqlite3.connect('household_Leger.db')
-    
+    conn = get_connection()
     c = conn.cursor()
-    res = c.execute('''delete from ledger where serialNo = ?''',(key,)) # key - tuple 형식, 유의
-    
-     # isolation_level = None 생략 - cursor, connection 객체 close()
+
+    c.execute("DELETE FROM ledger WHERE serialNo = ?", (key,))
+
     conn.commit()
-    
     c.close()
-    
     conn.close()
-    
-    pass

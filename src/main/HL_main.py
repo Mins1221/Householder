@@ -25,29 +25,13 @@ class MyFrame ( wx.Frame ):
         # self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
         self.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_MENU ) )
         
-        bSizer1 = wx.BoxSizer( wx.VERTICAL )
+        bSizer1 = wx.BoxSizer(wx.VERTICAL)
         
         gbSizer1 = wx.GridBagSizer( 0, 0 )
         gbSizer1.SetFlexibleDirection( wx.BOTH )
         gbSizer1.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
         
-        bSizer11 = wx.BoxSizer( wx.HORIZONTAL )
         
-        bSizer23 = wx.BoxSizer( wx.HORIZONTAL )
-        
-        self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"거래번호", wx.DefaultPosition, wx.Size( -1,-1 ), 0 )
-        self.m_staticText1.Wrap( -1 )
-        self.m_staticText1.SetFont( wx.Font( 11, 70, 90, 92, False, "Consolas" ) )
-        
-        bSizer23.Add( self.m_staticText1, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-        
-        self.txtSeriaNo = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( -1,-1 ), wx.TE_READONLY|wx.TE_RIGHT )
-        self.txtSeriaNo.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
-        
-        bSizer23.Add( self.txtSeriaNo, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-        
-        
-        bSizer11.Add( bSizer23, 1, wx.EXPAND, 5 )
         
         bSizer24 = wx.BoxSizer( wx.HORIZONTAL )
         
@@ -63,10 +47,7 @@ class MyFrame ( wx.Frame ):
         bSizer24.Add( self.txtDate, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
         
         
-        bSizer11.Add( bSizer24, 1, wx.EXPAND, 5 )
-        
-        
-        gbSizer1.Add( bSizer11, wx.GBPosition( 1, 1 ), wx.GBSpan( 1, 5 ), wx.EXPAND, 5 )
+        gbSizer1.Add( bSizer24, wx.GBPosition( 1, 1 ), wx.GBSpan( 1, 5 ), wx.EXPAND, 5 )
         
         bSizer3 = wx.BoxSizer( wx.VERTICAL )
         
@@ -375,7 +356,11 @@ class MyFrame ( wx.Frame ):
         event.Skip()
     
     def OnUpdate( self, event ):
-        serialNo = self.txtSeriaNo.GetValue()
+        idx = self.list.GetFirstSelected()
+        if idx == -1:
+            return
+        serialNo = self.list.GetItem(idx, 0).GetText()
+
         date = self.txtDate.GetValue()
 
         section = ""        
@@ -407,7 +392,11 @@ class MyFrame ( wx.Frame ):
         event.Skip()
     
     def OnDelete( self, event ):
-        key = self.txtSeriaNo.GetValue()
+        idx = self.list.GetFirstSelected()
+        if idx == -1:
+            return
+        key = self.list.GetItem(idx, 0).GetText()
+
         
         HL_CRUD.delete(key)
         
@@ -418,7 +407,6 @@ class MyFrame ( wx.Frame ):
         event.Skip()
     
     def OnClear( self, event ):
-        self.txtSeriaNo.SetValue("")
         self.txtDate.SetValue("")
         
         self.RadioRevenue.SetValue(False)
@@ -475,8 +463,6 @@ class MyFrame ( wx.Frame ):
  
     def OnSelected( self, event ):
         idx = event.GetIndex()
-        
-        self.txtSeriaNo.SetValue(self.list.GetItem(idx, 0).GetText())
         
         self.txtDate.SetValue(self.list.GetItem(idx, 1).GetText())
 
