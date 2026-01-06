@@ -9,6 +9,7 @@
 
 import wx
 import wx.xrc
+import wx.adv
 
 from main import HL_CRUD
 from main.barChart import Barchart
@@ -40,11 +41,10 @@ class MyFrame ( wx.Frame ):
         self.m_staticText2.SetFont( wx.Font( 11, 70, 90, 92, False, "Consolas" ) )
         
         bSizer24.Add( self.m_staticText2, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+        self.datePicker = wx.adv.DatePickerCtrl(self,wx.ID_ANY,style=wx.adv.DP_DROPDOWN | wx.adv.DP_SHOWCENTURY)
+        self.datePicker.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
-        self.txtDate = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( -1,-1 ), wx.TE_RIGHT )
-        self.txtDate.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
-        
-        bSizer24.Add( self.txtDate, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+        bSizer24.Add(self.datePicker, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
         
         
         gbSizer1.Add( bSizer24, wx.GBPosition( 1, 1 ), wx.GBSpan( 1, 5 ), wx.EXPAND, 5 )
@@ -317,7 +317,8 @@ class MyFrame ( wx.Frame ):
     # Virtual event handlers, overide them in your derived class
     
     def OnInsert( self, event ):
-        date = self.txtDate.GetValue()
+        dt = self.datePicker.GetValue()
+        date = dt.FormatISODate()   # 'YYYY-MM-DD'
         
         section = ""
         if (self.RadioRevenue.GetValue()):
@@ -407,8 +408,8 @@ class MyFrame ( wx.Frame ):
         event.Skip()
     
     def OnClear( self, event ):
-        self.txtDate.SetValue("")
-        
+        self.datePicker.SetValue(wx.DateTime.Today())
+
         self.RadioRevenue.SetValue(False)
         self.RadioExpense.SetValue(False)
         
@@ -464,7 +465,10 @@ class MyFrame ( wx.Frame ):
     def OnSelected( self, event ):
         idx = event.GetIndex()
         
-        self.txtDate.SetValue(self.list.GetItem(idx, 1).GetText())
+        date_str = self.list.GetItem(idx, 1).GetText()
+        y, m, d = map(int, date_str.split('-'))
+        self.datePicker.SetValue(wx.DateTime.FromDMY(d, m-1, y))
+
 
         
         if(self.list.GetItem(idx, 2).GetText() == '수입'):
