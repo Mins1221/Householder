@@ -26,8 +26,12 @@ class MyFrame ( wx.Frame ):
     def __init__( self, parent ):
         wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"가계부", pos = wx.DefaultPosition, size = wx.Size( 1360,768 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
         
+        # 기존 Frame 바로 아래에 추가
+        self.mainPanel = wx.Panel(self)
+        self.mainPanel.SetBackgroundColour("#F5F7FA")
+
         # self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
-        self.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_MENU ) )
+        self.SetBackgroundColour("#F5F7FA") # 요즘 앱 배경색
         
         bSizer1 = wx.BoxSizer(wx.VERTICAL)
         
@@ -39,12 +43,12 @@ class MyFrame ( wx.Frame ):
         
         bSizer24 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"거래일자", wx.DefaultPosition, wx.Size( -1,-1 ), 0 )
+        self.m_staticText2 = wx.StaticText( self.mainPanel, wx.ID_ANY, u"거래일자", wx.DefaultPosition, wx.Size( -1,-1 ), 0 )
         self.m_staticText2.Wrap( -1 )
         self.m_staticText2.SetFont( wx.Font( 11, 70, 90, 92, False, "Consolas" ) )
         
         bSizer24.Add( self.m_staticText2, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-        self.datePicker = wx.adv.DatePickerCtrl(self,wx.ID_ANY,style=wx.adv.DP_DROPDOWN | wx.adv.DP_SHOWCENTURY)
+        self.datePicker = wx.adv.DatePickerCtrl(self.mainPanel,wx.ID_ANY,style=wx.adv.DP_DROPDOWN | wx.adv.DP_SHOWCENTURY)
         self.datePicker.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer24.Add(self.datePicker, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -55,7 +59,7 @@ class MyFrame ( wx.Frame ):
         # ===== 월별 합계 선택 =====
         bSizerMonth = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.lblMonth = wx.StaticText(self, wx.ID_ANY, u"월 선택")
+        self.lblMonth = wx.StaticText(self.mainPanel, wx.ID_ANY, u"월 선택")
         self.lblMonth.SetFont(wx.Font(11, 70, 90, 90, False, "Consolas"))
         bSizerMonth.Add(self.lblMonth, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
@@ -64,7 +68,7 @@ class MyFrame ( wx.Frame ):
             months = ['데이터 없음']
 
         self.cboMonth = wx.ComboBox(
-            self,
+            self.mainPanel,
             choices=months,
             style=wx.CB_READONLY
         )
@@ -74,7 +78,7 @@ class MyFrame ( wx.Frame ):
         self.cboMonth.SetFont(wx.Font(11, 70, 90, 90, False, "Consolas"))
         bSizerMonth.Add(self.cboMonth, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        self.btnMonthlySum = wx.Button(self, wx.ID_ANY, u"월별 합계 조회")
+        self.btnMonthlySum = wx.Button(self.mainPanel, wx.ID_ANY, u"월별 합계 조회")
         self.btnMonthlySum.SetFont(wx.Font(11, 70, 90, 90, False, "Consolas"))
         bSizerMonth.Add(self.btnMonthlySum, 0, wx.ALL, 5)
 
@@ -89,7 +93,7 @@ class MyFrame ( wx.Frame ):
 
         bSizer3 = wx.BoxSizer( wx.VERTICAL )
         
-        self.m_staticText16 = wx.StaticText( self, wx.ID_ANY, u"수입 입력부", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText16 = wx.StaticText( self.mainPanel, wx.ID_ANY, u"수입 입력부", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText16.Wrap( -1 )
         self.m_staticText16.SetFont( wx.Font( 11, 70, 90, 92, False, "Consolas" ) )
         
@@ -97,7 +101,7 @@ class MyFrame ( wx.Frame ):
         
         bSizer4 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.RadioRevenue = wx.RadioButton( self, wx.ID_ANY, u"수입(필수선택)", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.RadioRevenue = wx.RadioButton( self.mainPanel, wx.ID_ANY, u"수입(필수선택)", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.RadioRevenue.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer4.Add( self.RadioRevenue, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
@@ -107,14 +111,14 @@ class MyFrame ( wx.Frame ):
         
         bSizer13 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.m_staticText17 = wx.StaticText( self, wx.ID_ANY, u"수입구분", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText17 = wx.StaticText( self.mainPanel, wx.ID_ANY, u"수입구분", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText17.Wrap( -1 )
         self.m_staticText17.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer13.Add( self.m_staticText17, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
         
         comboRevenueChoices = [ u"상세내역 선택", u"수입.급여", u"수입.상여", u"수입.이자", u"수입.배당", u"수입.사업", u"수입.연금", u"수입.기타" ]
-        self.comboRevenue = wx.ComboBox( self, wx.ID_ANY, u"상세내역 선택", wx.DefaultPosition, wx.Size( 120,-1 ), comboRevenueChoices, 0 )
+        self.comboRevenue = wx.ComboBox( self.mainPanel, wx.ID_ANY, u"상세내역 선택", wx.DefaultPosition, wx.Size( 120,-1 ), comboRevenueChoices, 0 )
         self.comboRevenue.SetSelection( 0 )
         self.comboRevenue.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
@@ -125,13 +129,13 @@ class MyFrame ( wx.Frame ):
         
         bSizer6 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.m_staticText9 = wx.StaticText( self, wx.ID_ANY, u"수입금액", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText9 = wx.StaticText( self.mainPanel, wx.ID_ANY, u"수입금액", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText9.Wrap( -1 )
         self.m_staticText9.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer6.Add( self.m_staticText9, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
         
-        self.txtRevenue = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 120,-1 ), wx.TE_RIGHT )
+        self.txtRevenue = wx.TextCtrl( self.mainPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 120,-1 ), wx.TE_RIGHT )
         self.txtRevenue.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer6.Add( self.txtRevenue, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
@@ -144,7 +148,7 @@ class MyFrame ( wx.Frame ):
         
         bSizer7 = wx.BoxSizer( wx.VERTICAL )
         
-        self.m_staticText10 = wx.StaticText( self, wx.ID_ANY, u"지출 입력부", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText10 = wx.StaticText(self.mainPanel, wx.ID_ANY, u"지출 입력부", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText10.Wrap( -1 )
         self.m_staticText10.SetFont( wx.Font( 11, 70, 90, 92, False, "Consolas" ) )
         
@@ -152,7 +156,7 @@ class MyFrame ( wx.Frame ):
         
         bSizer8 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.RadioExpense = wx.RadioButton( self, wx.ID_ANY, u"지출(필수선택)", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.RadioExpense = wx.RadioButton( self.mainPanel, wx.ID_ANY, u"지출(필수선택)", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.RadioExpense.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer8.Add( self.RadioExpense, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
@@ -162,14 +166,14 @@ class MyFrame ( wx.Frame ):
         
         bSizer15 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.m_staticText18 = wx.StaticText( self, wx.ID_ANY, u"지출구분", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText18 = wx.StaticText( self.mainPanel, wx.ID_ANY, u"지출구분", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText18.Wrap( -1 )
         self.m_staticText18.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer15.Add( self.m_staticText18, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
         
         comboExpenseChoices = [ u"상세내역 선택", u"지출.식대", u"지출.간식", u"지출.여가생활", u"지출.소모품", u"지출.패션", u"지출.가전", u"지출.차량", u"지출.공과금", u"지출.보험", u"지출.기타" ]
-        self.comboExpense = wx.ComboBox( self, wx.ID_ANY, u"상세내역 선택", wx.DefaultPosition, wx.Size( 120,-1 ), comboExpenseChoices, 0 )
+        self.comboExpense = wx.ComboBox( self.mainPanel, wx.ID_ANY, u"상세내역 선택", wx.DefaultPosition, wx.Size( 120,-1 ), comboExpenseChoices, 0 )
         self.comboExpense.SetSelection( 0 )
         self.comboExpense.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
@@ -180,13 +184,13 @@ class MyFrame ( wx.Frame ):
         
         bSizer9 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.m_staticText12 = wx.StaticText( self, wx.ID_ANY, u"지출금액", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText12 = wx.StaticText( self.mainPanel, wx.ID_ANY, u"지출금액", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText12.Wrap( -1 )
         self.m_staticText12.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer9.Add( self.m_staticText12, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
         
-        self.txtExpense = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 120,-1 ), wx.TE_RIGHT )
+        self.txtExpense = wx.TextCtrl( self.mainPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 120,-1 ), wx.TE_RIGHT )
         self.txtExpense.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer9.Add( self.txtExpense, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
@@ -201,22 +205,22 @@ class MyFrame ( wx.Frame ):
         
         bSizer16 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.btnInsert = wx.Button( self, wx.ID_ANY, u"등록", wx.DefaultPosition, wx.Size( 108,-1 ), wx.NO_BORDER )
+        self.btnInsert = wx.Button( self.mainPanel, wx.ID_ANY, u"등록", wx.DefaultPosition, wx.Size( 108,-1 ), wx.NO_BORDER )
         self.btnInsert.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer16.Add( self.btnInsert, 0, wx.ALL, 5 )
         
-        self.btnUpdate = wx.Button( self, wx.ID_ANY, u"수정", wx.DefaultPosition, wx.Size( 108,-1 ), wx.NO_BORDER )
+        self.btnUpdate = wx.Button( self.mainPanel, wx.ID_ANY, u"수정", wx.DefaultPosition, wx.Size( 108,-1 ), wx.NO_BORDER )
         self.btnUpdate.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer16.Add( self.btnUpdate, 0, wx.ALL, 5 )
         
-        self.btnDelete = wx.Button( self, wx.ID_ANY, u"삭제", wx.DefaultPosition, wx.Size( 108,-1 ), wx.NO_BORDER )
+        self.btnDelete = wx.Button( self.mainPanel, wx.ID_ANY, u"삭제", wx.DefaultPosition, wx.Size( 108,-1 ), wx.NO_BORDER )
         self.btnDelete.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer16.Add( self.btnDelete, 0, wx.ALL, 5 )
         
-        self.btnClear = wx.Button( self, wx.ID_ANY, u"초기화", wx.DefaultPosition, wx.Size( 108,-1 ), wx.NO_BORDER )
+        self.btnClear = wx.Button( self.mainPanel, wx.ID_ANY, u"초기화", wx.DefaultPosition, wx.Size( 108,-1 ), wx.NO_BORDER )
         self.btnClear.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer16.Add( self.btnClear, 0, wx.ALL, 5 )
@@ -226,12 +230,12 @@ class MyFrame ( wx.Frame ):
         
         bSizer20 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.btnFind = wx.Button( self, wx.ID_ANY, u"수입내역 조회", wx.DefaultPosition, wx.Size( 226,-1 ), wx.NO_BORDER )
+        self.btnFind = wx.Button( self.mainPanel, wx.ID_ANY, u"수입내역 조회", wx.DefaultPosition, wx.Size( 226,-1 ), wx.NO_BORDER )
         self.btnFind.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer20.Add( self.btnFind, 0, wx.ALL, 5 )
         
-        self.btnSelectAll = wx.Button( self, wx.ID_ANY, u"전체거래 조회", wx.DefaultPosition, wx.Size( 226,-1 ), wx.NO_BORDER )
+        self.btnSelectAll = wx.Button( self.mainPanel, wx.ID_ANY, u"전체거래 조회", wx.DefaultPosition, wx.Size( 226,-1 ), wx.NO_BORDER )
         self.btnSelectAll.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer20.Add( self.btnSelectAll, 0, wx.ALL, 5 )
@@ -244,13 +248,13 @@ class MyFrame ( wx.Frame ):
         
         bSizer21 = wx.BoxSizer( wx.VERTICAL )
         
-        self.m_staticText19 = wx.StaticText( self, wx.ID_ANY, u"작업내역", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText19 = wx.StaticText(self.mainPanel, wx.ID_ANY, u"작업내역", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText19.Wrap( -1 )
         self.m_staticText19.SetFont( wx.Font( 11, 70, 90, 92, False, "Consolas" ) )
         
         bSizer21.Add( self.m_staticText19, 0, wx.ALL, 5 )
         
-        self.txtWorkHistory = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( -1, 280 ), wx.HSCROLL|wx.TE_MULTILINE|wx.TE_READONLY )
+        self.txtWorkHistory = wx.TextCtrl( self.mainPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( -1, 280 ), wx.HSCROLL|wx.TE_MULTILINE|wx.TE_READONLY )
         self.txtWorkHistory.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer21.Add( self.txtWorkHistory, 0, wx.ALL|wx.EXPAND, 5 )
@@ -258,13 +262,13 @@ class MyFrame ( wx.Frame ):
         
         gbSizer1.Add( bSizer21, wx.GBPosition( 16, 1 ), wx.GBSpan( 10, 5 ), wx.EXPAND, 5 )
         
-        self.m_staticText20 = wx.StaticText( self, wx.ID_ANY, u"데이터 조회", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText20 = wx.StaticText( self.mainPanel, wx.ID_ANY, u"데이터 조회", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText20.Wrap( -1 )
         self.m_staticText20.SetFont( wx.Font( 11, 70, 90, 92, False, "Consolas" ) )
         
         gbSizer1.Add( self.m_staticText20, wx.GBPosition( 1, 9 ), wx.GBSpan( 1, 1 ), wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
         
-        self.list = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT )
+        self.list = wx.ListCtrl( self.mainPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT )
         self.list.InsertColumn(0, '거래번호', width = 60)
         self.list.InsertColumn(1, '거래일자', width = 100)
         self.list.InsertColumn(2, '수입/지출', width = 100)
@@ -280,7 +284,7 @@ class MyFrame ( wx.Frame ):
         
         bSizer27 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.m_staticText22 = wx.StaticText( self, wx.ID_ANY, u"지출 현황", wx.DefaultPosition, wx.Size( 600,-1 ), 0 )
+        self.m_staticText22 = wx.StaticText( self.mainPanel, wx.ID_ANY, u"지출 현황", wx.DefaultPosition, wx.Size( 600,-1 ), 0 )
         self.m_staticText22.Wrap( -1 )
         self.m_staticText22.SetFont( wx.Font( 11, 70, 90, 92, False, "Consolas" ) )
         
@@ -288,12 +292,12 @@ class MyFrame ( wx.Frame ):
         
         bSizer27 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.m_button7 = wx.Button( self, wx.ID_ANY, u"그래프 보기", wx.DefaultPosition, wx.Size( -1,-1 ), wx.NO_BORDER )
+        self.m_button7 = wx.Button( self.mainPanel, wx.ID_ANY, u"그래프 보기", wx.DefaultPosition, wx.Size( -1,-1 ), wx.NO_BORDER )
         self.m_button7.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer27.Add( self.m_button7, 0, wx.ALIGN_LEFT|wx.ALL|wx.EXPAND, 5 )
         
-        self.m_button8 = wx.Button( self, wx.ID_ANY, u"그래프 지우기", wx.DefaultPosition, wx.Size( -1,-1 ), wx.NO_BORDER )
+        self.m_button8 = wx.Button( self.mainPanel, wx.ID_ANY, u"그래프 지우기", wx.DefaultPosition, wx.Size( -1,-1 ), wx.NO_BORDER )
         self.m_button8.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer27.Add( self.m_button8, 0, wx.ALL|wx.EXPAND, 5 )
@@ -302,10 +306,8 @@ class MyFrame ( wx.Frame ):
         bSizer19.Add( bSizer27, 1, wx.SHAPED, 5 )
         
         
-        gbSizer1.Add( bSizer19, wx.GBPosition( 13, 9 ), wx.GBSpan( 1, 32 ), wx.ALIGN_LEFT|wx.EXPAND|wx.SHAPED, 5 )
-        
-        self.graphPanel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.graphPanel = Barchart(self)
+        gbSizer1.Add( bSizer19, wx.GBPosition( 13, 9 ), wx.GBSpan( 1, 32 ), wx.ALIGN_LEFT|wx.EXPAND|wx.SHAPED, 5 )        
+        self.graphPanel = Barchart(self.mainPanel)
         self.graphPanel.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         self.graphPanel.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
         
@@ -313,13 +315,13 @@ class MyFrame ( wx.Frame ):
         
         bSizer28 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.m_staticText14 = wx.StaticText( self, wx.ID_ANY, u"비고", wx.DefaultPosition, wx.Size( -1,-1 ), 0 )
+        self.m_staticText14 = wx.StaticText( self.mainPanel, wx.ID_ANY, u"비고", wx.DefaultPosition, wx.Size( -1,-1 ), 0 )
         self.m_staticText14.Wrap( -1 )
         self.m_staticText14.SetFont( wx.Font( 11, 70, 90, 92, False, "Consolas" ) )
         
         bSizer28.Add( self.m_staticText14, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
         
-        self.txtRemark = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 425,-1 ), wx.TE_MULTILINE )
+        self.txtRemark = wx.TextCtrl( self.mainPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 425,-1 ), wx.TE_MULTILINE )
         self.txtRemark.SetFont( wx.Font( 11, 70, 90, 90, False, "Consolas" ) )
         
         bSizer28.Add( self.txtRemark, 0, wx.ALL, 5 )
@@ -331,7 +333,7 @@ class MyFrame ( wx.Frame ):
         bSizer1.Add( gbSizer1, 1, wx.EXPAND, 5 )
         
         
-        self.SetSizer( bSizer1 )
+        self.mainPanel.SetSizer( bSizer1 )
         self.Layout()
         
         self.Centre( wx.BOTH )
