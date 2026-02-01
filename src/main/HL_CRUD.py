@@ -49,6 +49,11 @@ def insertData(date, section, title, revenue, expense, remark):
     conn.close()
 
 
+def insert(data):
+    """tuple 형태의 데이터를 받아서 insertData 호출"""
+    insertData(*data)
+
+
 def insertManyData(tupleData):
     conn = get_connection()
     c = conn.cursor()
@@ -136,4 +141,3 @@ def selectMonthList():
     conn.close()
 
     return [row[0] for row in rows]
-

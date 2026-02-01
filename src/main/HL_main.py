@@ -630,7 +630,7 @@ class MyFrame(wx.Frame):
             amount = amount.replace(',', '')
             float(amount)
             
-            data = (date, '수입', item, amount, '0', remark)
+            data = (date, '수입', item, '0', amount, remark)
             HL_CRUD.insert(data)
             
             wx.MessageBox("수입이 등록되었습니다.", "등록 완료", wx.OK | wx.ICON_INFORMATION)
@@ -660,7 +660,7 @@ class MyFrame(wx.Frame):
             amount = amount.replace(',', '')
             float(amount)
             
-            data = (date, '지출', item, '0', amount, remark)
+            data = (date, '지출', item, amount, '0', remark)
             HL_CRUD.insert(data)
             
             wx.MessageBox("지출이 등록되었습니다.", "등록 완료", wx.OK | wx.ICON_INFORMATION)
