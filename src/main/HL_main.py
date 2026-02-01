@@ -2,7 +2,7 @@
 
 ###########################################################################
 ## Enhanced Smart Household Account Book
-## 개선된 스마트 가계부 v3.0
+## 개선된 스마트 가계부 v4.0
 ###########################################################################
 
 import wx
@@ -94,7 +94,7 @@ class FavoritesDialog(wx.Dialog):
         self.LoadFavorites()
     
     def LoadFavorites(self):
-        # 즐겨찾기 데이터 로드 (실제로는 파일이나 DB에서)
+        # 즐겨찾기 데이터 로드
         self.favorites = []
         try:
             with open('favorites.csv', 'r', encoding='utf-8') as f:
@@ -114,7 +114,6 @@ class FavoritesDialog(wx.Dialog):
     def OnAdd(self, event):
         dlg = wx.TextEntryDialog(self, "즐겨찾기 이름:", "즐겨찾기 추가")
         if dlg.ShowModal() == wx.ID_OK:
-            # 간단한 예제
             name = dlg.GetValue()
             self.favorites.append(['수입', '수입.급여', '0', name])
             self.SaveFavorites()
@@ -235,44 +234,37 @@ class BudgetDialog(wx.Dialog):
         monthSizer.Add(self.monthChoice, 1, wx.ALL, 5)
         sizer.Add(monthSizer, 0, wx.EXPAND | wx.ALL, 10)
         
-        # 예산 항목
-        budgetBox = wx.StaticBoxSizer(wx.VERTICAL, panel, "카테고리별 예산")
+        # 예산 항목 목록
+        self.budgetList = wx.ListCtrl(panel, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+        self.budgetList.InsertColumn(0, "카테고리", width=150)
+        self.budgetList.InsertColumn(1, "예산", width=120)
+        self.budgetList.InsertColumn(2, "실제 지출", width=120)
+        self.budgetList.InsertColumn(3, "잔액", width=120)
         
-        # 카테고리 목록
-        categories = [
-            "식비", "교통비", "통신비", "주거비", "의료비",
-            "교육비", "문화생활", "경조사비", "기타"
-        ]
+        sizer.Add(self.budgetList, 1, wx.EXPAND | wx.ALL, 10)
         
-        self.budgetInputs = {}
-        grid = wx.FlexGridSizer(cols=2, hgap=10, vgap=5)
+        # 예산 설정
+        budgetBox = wx.StaticBoxSizer(wx.HORIZONTAL, panel, "예산 설정")
+        budgetBox.Add(wx.StaticText(panel, label="카테고리:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.categoryChoice = wx.Choice(panel, choices=[
+            '식비', '교통비', '통신비', '주거비', '의료비', '교육비', '문화비', '기타'
+        ])
+        budgetBox.Add(self.categoryChoice, 1, wx.ALL, 5)
         
-        for cat in categories:
-            label = wx.StaticText(panel, label=f"{cat}:")
-            textCtrl = wx.TextCtrl(panel, value="0")
-            self.budgetInputs[cat] = textCtrl
-            grid.Add(label, 0, wx.ALIGN_CENTER_VERTICAL)
-            grid.Add(textCtrl, 1, wx.EXPAND)
+        budgetBox.Add(wx.StaticText(panel, label="예산:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.budgetAmount = wx.TextCtrl(panel, size=(150, -1))
+        budgetBox.Add(self.budgetAmount, 0, wx.ALL, 5)
         
-        grid.AddGrowableCol(1)
-        budgetBox.Add(grid, 1, wx.EXPAND | wx.ALL, 10)
-        sizer.Add(budgetBox, 1, wx.EXPAND | wx.ALL, 10)
+        btnSet = wx.Button(panel, label="설정")
+        btnSet.Bind(wx.EVT_BUTTON, self.OnSetBudget)
+        budgetBox.Add(btnSet, 0, wx.ALL, 5)
         
-        # 총 예산
-        totalSizer = wx.BoxSizer(wx.HORIZONTAL)
-        totalSizer.Add(wx.StaticText(panel, label="총 예산:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
-        self.totalBudget = wx.TextCtrl(panel, style=wx.TE_READONLY)
-        totalSizer.Add(self.totalBudget, 1, wx.ALL, 5)
-        
-        btnCalc = wx.Button(panel, label="계산")
-        btnCalc.Bind(wx.EVT_BUTTON, self.OnCalculate)
-        totalSizer.Add(btnCalc, 0, wx.ALL, 5)
-        sizer.Add(totalSizer, 0, wx.EXPAND | wx.ALL, 10)
+        sizer.Add(budgetBox, 0, wx.EXPAND | wx.ALL, 10)
         
         # 버튼
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         btnSave = wx.Button(panel, wx.ID_OK, label="저장")
-        btnCancel = wx.Button(panel, wx.ID_CANCEL, label="취소")
+        btnCancel = wx.Button(panel, wx.ID_CANCEL, label="닫기")
         btnSizer.Add(btnSave, 0, wx.ALL, 5)
         btnSizer.Add(btnCancel, 0, wx.ALL, 5)
         
@@ -280,35 +272,62 @@ class BudgetDialog(wx.Dialog):
         
         panel.SetSizer(sizer)
         
-        self.LoadBudget()
+        self.LoadBudgets()
     
-    def LoadBudget(self):
+    def LoadBudgets(self):
         # 예산 데이터 로드
+        self.budgets = {}
         try:
-            with open('budget.csv', 'r', encoding='utf-8') as f:
+            with open('budgets.csv', 'r', encoding='utf-8') as f:
                 reader = csv.reader(f)
                 for row in reader:
-                    if len(row) >= 2 and row[0] in self.budgetInputs:
-                        self.budgetInputs[row[0]].SetValue(row[1])
+                    if len(row) >= 2:
+                        self.budgets[row[0]] = float(row[1])
         except FileNotFoundError:
             pass
-    
-    def OnCalculate(self, event):
-        total = 0
-        for textCtrl in self.budgetInputs.values():
-            try:
-                value = float(textCtrl.GetValue().replace(',', ''))
-                total += value
-            except ValueError:
-                pass
         
-        self.totalBudget.SetValue(f"{total:,.0f}")
+        self.UpdateBudgetList()
     
-    def SaveBudget(self):
-        with open('budget.csv', 'w', encoding='utf-8', newline='') as f:
+    def UpdateBudgetList(self):
+        self.budgetList.DeleteAllItems()
+        
+        categories = ['식비', '교통비', '통신비', '주거비', '의료비', '교육비', '문화비', '기타']
+        for category in categories:
+            budget = self.budgets.get(category, 0)
+            actual = 0  # 실제 지출은 DB에서 조회해야 함
+            balance = budget - actual
+            
+            idx = self.budgetList.InsertItem(self.budgetList.GetItemCount(), category)
+            self.budgetList.SetItem(idx, 1, f"{budget:,.0f}원")
+            self.budgetList.SetItem(idx, 2, f"{actual:,.0f}원")
+            self.budgetList.SetItem(idx, 3, f"{balance:,.0f}원")
+            
+            # 색상 표시
+            if balance < 0:
+                self.budgetList.SetItemTextColour(idx, wx.RED)
+    
+    def OnSetBudget(self, event):
+        category = self.categoryChoice.GetStringSelection()
+        amount = self.budgetAmount.GetValue()
+        
+        if not category:
+            wx.MessageBox("카테고리를 선택하세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
+            return
+        
+        try:
+            amount_float = float(amount.replace(',', ''))
+            self.budgets[category] = amount_float
+            self.UpdateBudgetList()
+            self.budgetAmount.Clear()
+            wx.MessageBox(f"{category} 예산이 설정되었습니다.", "설정 완료", wx.OK | wx.ICON_INFORMATION)
+        except ValueError:
+            wx.MessageBox("올바른 금액을 입력하세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
+    
+    def SaveBudgets(self):
+        with open('budgets.csv', 'w', encoding='utf-8', newline='') as f:
             writer = csv.writer(f)
-            for cat, textCtrl in self.budgetInputs.items():
-                writer.writerow([cat, textCtrl.GetValue()])
+            for category, amount in self.budgets.items():
+                writer.writerow([category, amount])
 
 
 ###########################################################################
@@ -316,7 +335,9 @@ class BudgetDialog(wx.Dialog):
 ###########################################################################
 class StatisticsDialog(wx.Dialog):
     def __init__(self, parent, data):
-        super().__init__(parent, title="📊 상세 통계", size=(700, 600))
+        super().__init__(parent, title="📊 통계 분석", size=(700, 500))
+        
+        self.data = data
         
         panel = wx.Panel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -326,81 +347,29 @@ class StatisticsDialog(wx.Dialog):
         
         # 월별 통계 탭
         monthlyPanel = wx.Panel(notebook)
-        monthlyList = wx.ListCtrl(monthlyPanel, style=wx.LC_REPORT)
-        monthlyList.InsertColumn(0, "월", width=100)
-        monthlyList.InsertColumn(1, "수입", width=120)
-        monthlyList.InsertColumn(2, "지출", width=120)
-        monthlyList.InsertColumn(3, "잔액", width=120)
-        monthlyList.InsertColumn(4, "저축률", width=100)
-        
-        # 월별 데이터 집계
-        monthly_data = defaultdict(lambda: {'income': 0, 'expense': 0})
-        for row in data:
-            if len(row) >= 6:
-                month = row[1][:7]  # YYYY-MM
-                try:
-                    if row[4]:  # 수입
-                        monthly_data[month]['income'] += float(row[4])
-                    if row[5]:  # 지출
-                        monthly_data[month]['expense'] += float(row[5])
-                except (ValueError, TypeError):
-                    continue
-        
-        for month in sorted(monthly_data.keys()):
-            income = monthly_data[month]['income']
-            expense = monthly_data[month]['expense']
-            balance = income - expense
-            savings_rate = (balance / income * 100) if income > 0 else 0
-            
-            idx = monthlyList.InsertItem(monthlyList.GetItemCount(), month)
-            monthlyList.SetItem(idx, 1, f"{income:,.0f}")
-            monthlyList.SetItem(idx, 2, f"{expense:,.0f}")
-            monthlyList.SetItem(idx, 3, f"{balance:,.0f}")
-            monthlyList.SetItem(idx, 4, f"{savings_rate:.1f}%")
-        
         monthlySizer = wx.BoxSizer(wx.VERTICAL)
-        monthlySizer.Add(monthlyList, 1, wx.EXPAND | wx.ALL, 10)
+        
+        self.monthlyList = wx.ListCtrl(monthlyPanel, style=wx.LC_REPORT)
+        self.monthlyList.InsertColumn(0, "월", width=100)
+        self.monthlyList.InsertColumn(1, "수입", width=150)
+        self.monthlyList.InsertColumn(2, "지출", width=150)
+        self.monthlyList.InsertColumn(3, "잔액", width=150)
+        
+        monthlySizer.Add(self.monthlyList, 1, wx.EXPAND | wx.ALL, 10)
         monthlyPanel.SetSizer(monthlySizer)
+        notebook.AddPage(monthlyPanel, "월별 통계")
         
         # 카테고리별 통계 탭
         categoryPanel = wx.Panel(notebook)
-        categoryList = wx.ListCtrl(categoryPanel, style=wx.LC_REPORT)
-        categoryList.InsertColumn(0, "카테고리", width=150)
-        categoryList.InsertColumn(1, "금액", width=120)
-        categoryList.InsertColumn(2, "비율", width=100)
-        categoryList.InsertColumn(3, "건수", width=100)
-        
-        # 카테고리별 데이터 집계
-        category_data = defaultdict(lambda: {'amount': 0, 'count': 0})
-        total_expense = 0
-        
-        for row in data:
-            if len(row) >= 6 and row[2] == '지출':
-                category = row[3]
-                try:
-                    amount = float(row[5]) if row[5] else 0
-                    category_data[category]['amount'] += amount
-                    category_data[category]['count'] += 1
-                    total_expense += amount
-                except (ValueError, TypeError):
-                    continue
-        
-        for category in sorted(category_data.keys(), key=lambda x: category_data[x]['amount'], reverse=True):
-            amount = category_data[category]['amount']
-            count = category_data[category]['count']
-            ratio = (amount / total_expense * 100) if total_expense > 0 else 0
-            
-            idx = categoryList.InsertItem(categoryList.GetItemCount(), category)
-            categoryList.SetItem(idx, 1, f"{amount:,.0f}")
-            categoryList.SetItem(idx, 2, f"{ratio:.1f}%")
-            categoryList.SetItem(idx, 3, str(count))
-        
         categorySizer = wx.BoxSizer(wx.VERTICAL)
-        categorySizer.Add(categoryList, 1, wx.EXPAND | wx.ALL, 10)
-        categoryPanel.SetSizer(categorySizer)
         
-        # 탭 추가
-        notebook.AddPage(monthlyPanel, "월별 통계")
+        self.categoryList = wx.ListCtrl(categoryPanel, style=wx.LC_REPORT)
+        self.categoryList.InsertColumn(0, "카테고리", width=200)
+        self.categoryList.InsertColumn(1, "금액", width=150)
+        self.categoryList.InsertColumn(2, "비율", width=100)
+        
+        categorySizer.Add(self.categoryList, 1, wx.EXPAND | wx.ALL, 10)
+        categoryPanel.SetSizer(categorySizer)
         notebook.AddPage(categoryPanel, "카테고리별 통계")
         
         sizer.Add(notebook, 1, wx.EXPAND | wx.ALL, 10)
@@ -411,6 +380,52 @@ class StatisticsDialog(wx.Dialog):
         sizer.Add(btnClose, 0, wx.ALIGN_CENTER | wx.ALL, 10)
         
         panel.SetSizer(sizer)
+        
+        self.CalculateStatistics()
+    
+    def CalculateStatistics(self):
+        # 월별 통계
+        monthly_data = defaultdict(lambda: {'income': 0, 'expense': 0})
+        category_data = defaultdict(float)
+        
+        for row in self.data:
+            try:
+                month = row[1][:7]  # YYYY-MM
+                income = float(row[4]) if row[4] else 0
+                expense = float(row[5]) if row[5] else 0
+                
+                monthly_data[month]['income'] += income
+                monthly_data[month]['expense'] += expense
+                
+                if expense > 0:
+                    category = row[3].split('.')[0] if '.' in row[3] else row[3]
+                    category_data[category] += expense
+            except (ValueError, IndexError):
+                continue
+        
+        # 월별 리스트 채우기
+        for month in sorted(monthly_data.keys()):
+            income = monthly_data[month]['income']
+            expense = monthly_data[month]['expense']
+            balance = income - expense
+            
+            idx = self.monthlyList.InsertItem(self.monthlyList.GetItemCount(), month)
+            self.monthlyList.SetItem(idx, 1, f"{income:,.0f}원")
+            self.monthlyList.SetItem(idx, 2, f"{expense:,.0f}원")
+            self.monthlyList.SetItem(idx, 3, f"{balance:,.0f}원")
+            
+            if balance < 0:
+                self.monthlyList.SetItemTextColour(idx, wx.RED)
+        
+        # 카테고리별 리스트 채우기
+        total_expense = sum(category_data.values())
+        for category in sorted(category_data.keys(), key=lambda x: category_data[x], reverse=True):
+            amount = category_data[category]
+            ratio = (amount / total_expense * 100) if total_expense > 0 else 0
+            
+            idx = self.categoryList.InsertItem(self.categoryList.GetItemCount(), category)
+            self.categoryList.SetItem(idx, 1, f"{amount:,.0f}원")
+            self.categoryList.SetItem(idx, 2, f"{ratio:.1f}%")
 
 
 ###########################################################################
@@ -418,456 +433,333 @@ class StatisticsDialog(wx.Dialog):
 ###########################################################################
 class MyFrame(wx.Frame):
     def __init__(self, parent):
-        super().__init__(parent, id=wx.ID_ANY, title="💰 스마트 가계부 v3.0", 
-                        pos=wx.DefaultPosition, size=(1200, 800))
+        super().__init__(parent, title="💰 스마트 가계부 v4.0", size=(1200, 700))
         
-        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+        self.SetMinSize((1000, 600))
         
-        # 아이콘 설정 (선택사항)
-        try:
-            icon = wx.Icon()
-            icon.CopyFromBitmap(wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_FRAME_ICON, (16, 16)))
-            self.SetIcon(icon)
-        except:
-            pass
-        
-        # 메뉴바 생성
+        # 메뉴바
         self.CreateMenuBar()
         
-        # 상태바 생성
-        self.statusBar = self.CreateStatusBar(3, wx.STB_SIZEGRIP)
-        self.statusBar.SetStatusWidths([-2, -1, -1])
-        self.UpdateStatusBar()
-        
         # 메인 패널
-        mainPanel = wx.Panel(self)
+        panel = wx.Panel(self)
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         
-        # 상단 정보 패널
-        self.CreateInfoPanel(mainPanel, mainSizer)
+        # 상단: 입력 영역
+        inputSizer = self.CreateInputArea(panel)
+        mainSizer.Add(inputSizer, 0, wx.EXPAND | wx.ALL, 10)
         
-        # 중앙 분할 윈도우
-        splitter = wx.SplitterWindow(mainPanel, style=wx.SP_3D | wx.SP_LIVE_UPDATE)
+        # 중단: 목록 및 그래프
+        contentSizer = wx.BoxSizer(wx.HORIZONTAL)
         
-        # 왼쪽 패널 (입력 및 제어)
-        leftPanel = wx.Panel(splitter)
-        self.CreateLeftPanel(leftPanel)
-        
-        # 오른쪽 패널 (리스트 및 그래프)
-        rightPanel = wx.Panel(splitter)
-        self.CreateRightPanel(rightPanel)
-        
-        splitter.SplitVertically(leftPanel, rightPanel)
-        splitter.SetSashPosition(400)
-        splitter.SetMinimumPaneSize(300)
-        
-        mainSizer.Add(splitter, 1, wx.EXPAND | wx.ALL, 5)
-        
-        mainPanel.SetSizer(mainSizer)
-        
-        self.Centre(wx.BOTH)
-        
-        # 초기 데이터 로드
-        self.OnSelectAll(None)
-    
-    def CreateMenuBar(self):
-        """메뉴바 생성"""
-        menuBar = wx.MenuBar()
-        
-        # 파일 메뉴
-        fileMenu = wx.Menu()
-        menuExport = fileMenu.Append(wx.ID_ANY, "📤 Excel로 내보내기\tCtrl+E")
-        menuImport = fileMenu.Append(wx.ID_ANY, "📥 CSV 가져오기\tCtrl+I")
-        fileMenu.AppendSeparator()
-        menuExit = fileMenu.Append(wx.ID_EXIT, "🚪 종료\tCtrl+Q")
-        
-        # 도구 메뉴
-        toolMenu = wx.Menu()
-        menuSearch = toolMenu.Append(wx.ID_ANY, "🔍 고급 검색\tCtrl+F")
-        menuStatistics = toolMenu.Append(wx.ID_ANY, "📊 통계 보기\tCtrl+T")
-        toolMenu.AppendSeparator()
-        menuBudget = toolMenu.Append(wx.ID_ANY, "💰 예산 관리\tCtrl+B")
-        menuFavorites = toolMenu.Append(wx.ID_ANY, "⭐ 즐겨찾기\tCtrl+D")
-        
-        # 도움말 메뉴
-        helpMenu = wx.Menu()
-        menuAbout = helpMenu.Append(wx.ID_ABOUT, "ℹ️ 프로그램 정보")
-        
-        menuBar.Append(fileMenu, "파일(&F)")
-        menuBar.Append(toolMenu, "도구(&T)")
-        menuBar.Append(helpMenu, "도움말(&H)")
-        
-        self.SetMenuBar(menuBar)
-        
-        # 이벤트 바인딩
-        self.Bind(wx.EVT_MENU, self.OnExport, menuExport)
-        self.Bind(wx.EVT_MENU, self.OnImport, menuImport)
-        self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
-        self.Bind(wx.EVT_MENU, self.OnSearch, menuSearch)
-        self.Bind(wx.EVT_MENU, self.OnStatistics, menuStatistics)
-        self.Bind(wx.EVT_MENU, self.OnBudget, menuBudget)
-        self.Bind(wx.EVT_MENU, self.OnFavorites, menuFavorites)
-        self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
-    
-    def CreateInfoPanel(self, parent, sizer):
-        """상단 정보 패널 생성"""
-        infoPanel = wx.Panel(parent)
-        infoPanel.SetBackgroundColour(wx.Colour(240, 248, 255))
-        
-        infoSizer = wx.BoxSizer(wx.HORIZONTAL)
-        
-        # 현재 날짜
-        now = datetime.now()
-        date_str = f"📅 {now.year}년 {now.month}월 {now.day}일"
-        dateText = wx.StaticText(infoPanel, label=date_str)
-        font = dateText.GetFont()
-        font.PointSize += 2
-        font = font.Bold()
-        dateText.SetFont(font)
-        
-        infoSizer.Add(dateText, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 10)
-        infoSizer.AddStretchSpacer()
-        
-        # 요약 정보
-        self.summaryText = wx.StaticText(infoPanel, label="수입: 0원 | 지출: 0원 | 잔액: 0원")
-        summaryFont = self.summaryText.GetFont()
-        summaryFont.PointSize += 1
-        self.summaryText.SetFont(summaryFont)
-        
-        infoSizer.Add(self.summaryText, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 10)
-        
-        infoPanel.SetSizer(infoSizer)
-        sizer.Add(infoPanel, 0, wx.EXPAND | wx.ALL, 5)
-    
-    def CreateLeftPanel(self, parent):
-        """왼쪽 패널 (입력 및 제어) 생성"""
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        # 입력 영역
-        inputBox = wx.StaticBoxSizer(wx.VERTICAL, parent, "📝 거래 입력")
-        
-        # 날짜 선택
-        dateSizer = wx.BoxSizer(wx.HORIZONTAL)
-        dateSizer.Add(wx.StaticText(parent, label="날짜:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
-        self.datePicker = wx.adv.DatePickerCtrl(parent, style=wx.adv.DP_DROPDOWN)
-        dateSizer.Add(self.datePicker, 1, wx.EXPAND)
-        inputBox.Add(dateSizer, 0, wx.EXPAND | wx.ALL, 5)
-        
-        # 구분 라디오 버튼
-        radioSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.RadioRevenue = wx.RadioButton(parent, label="💰 수입", style=wx.RB_GROUP)
-        self.RadioExpense = wx.RadioButton(parent, label="💸 지출")
-        radioSizer.Add(self.RadioRevenue, 0, wx.ALL, 5)
-        radioSizer.Add(self.RadioExpense, 0, wx.ALL, 5)
-        inputBox.Add(radioSizer, 0, wx.ALL, 5)
-        
-        # 수입 항목 (StaticText와 콤보박스를 별도 행으로 분리)
-        revenueBox = wx.StaticBoxSizer(wx.VERTICAL, parent, "수입 항목")
-        
-        revenueLabelSizer = wx.BoxSizer(wx.HORIZONTAL)
-        revenueLabelSizer.Add(wx.StaticText(parent, label="항목:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
-        revenueBox.Add(revenueLabelSizer, 0, wx.EXPAND | wx.ALL, 3)
-        
-        self.comboRevenue = wx.ComboBox(parent, choices=[
-            "수입.급여", "수입.상여", "수입.부수입", "수입.이자",
-            "수입.배당", "수입.기타"
-        ], style=wx.CB_DROPDOWN)
-        revenueBox.Add(self.comboRevenue, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 3)
-        
-        revenueAmountSizer = wx.BoxSizer(wx.HORIZONTAL)
-        revenueAmountSizer.Add(wx.StaticText(parent, label="금액:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
-        self.txtRevenue = wx.TextCtrl(parent, value="0")
-        revenueAmountSizer.Add(self.txtRevenue, 1, wx.EXPAND)
-        revenueBox.Add(revenueAmountSizer, 0, wx.EXPAND | wx.ALL, 3)
-        
-        inputBox.Add(revenueBox, 0, wx.EXPAND | wx.ALL, 5)
-        
-        # 지출 항목 (StaticText와 콤보박스를 별도 행으로 분리)
-        expenseBox = wx.StaticBoxSizer(wx.VERTICAL, parent, "지출 항목")
-        
-        expenseLabelSizer = wx.BoxSizer(wx.HORIZONTAL)
-        expenseLabelSizer.Add(wx.StaticText(parent, label="항목:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
-        expenseBox.Add(expenseLabelSizer, 0, wx.EXPAND | wx.ALL, 3)
-        
-        self.comboExpense = wx.ComboBox(parent, choices=[
-            "지출.식비", "지출.교통비", "지출.통신비", "지출.주거비",
-            "지출.의료비", "지출.교육비", "지출.문화생활", "지출.경조사비",
-            "지출.세금", "지출.보험료", "지출.대출상환", "지출.기타"
-        ], style=wx.CB_DROPDOWN)
-        expenseBox.Add(self.comboExpense, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 3)
-        
-        expenseAmountSizer = wx.BoxSizer(wx.HORIZONTAL)
-        expenseAmountSizer.Add(wx.StaticText(parent, label="금액:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
-        self.txtExpense = wx.TextCtrl(parent, value="0")
-        expenseAmountSizer.Add(self.txtExpense, 1, wx.EXPAND)
-        expenseBox.Add(expenseAmountSizer, 0, wx.EXPAND | wx.ALL, 3)
-        
-        inputBox.Add(expenseBox, 0, wx.EXPAND | wx.ALL, 5)
-        
-        # 비고
-        remarkSizer = wx.BoxSizer(wx.HORIZONTAL)
-        remarkSizer.Add(wx.StaticText(parent, label="비고:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
-        self.txtRemark = wx.TextCtrl(parent)
-        remarkSizer.Add(self.txtRemark, 1, wx.EXPAND)
-        inputBox.Add(remarkSizer, 0, wx.EXPAND | wx.ALL, 5)
-        
-        sizer.Add(inputBox, 0, wx.EXPAND | wx.ALL, 10)
-        
-        # 버튼 영역
-        btnBox = wx.StaticBoxSizer(wx.VERTICAL, parent, "⚙️ 제어")
-        
-        btnGrid = wx.GridSizer(rows=3, cols=2, hgap=5, vgap=5)
-        
-        self.btnInsert = wx.Button(parent, label="➕ 추가")
-        self.btnUpdate = wx.Button(parent, label="✏️ 수정")
-        self.btnDelete = wx.Button(parent, label="🗑️ 삭제")
-        self.btnSelectAll = wx.Button(parent, label="📋 전체조회")
-        self.btnMonthSum = wx.Button(parent, label="📊 월별합계")
-        self.btnClear = wx.Button(parent, label="🔄 초기화")
-        
-        btnGrid.Add(self.btnInsert, 0, wx.EXPAND)
-        btnGrid.Add(self.btnUpdate, 0, wx.EXPAND)
-        btnGrid.Add(self.btnDelete, 0, wx.EXPAND)
-        btnGrid.Add(self.btnSelectAll, 0, wx.EXPAND)
-        btnGrid.Add(self.btnMonthSum, 0, wx.EXPAND)
-        btnGrid.Add(self.btnClear, 0, wx.EXPAND)
-        
-        btnBox.Add(btnGrid, 0, wx.EXPAND | wx.ALL, 5)
-        sizer.Add(btnBox, 0, wx.EXPAND | wx.ALL, 10)
-        
-        # 작업 내역
-        historyBox = wx.StaticBoxSizer(wx.VERTICAL, parent, "📜 작업 내역")
-        self.txtWorkHistory = wx.TextCtrl(parent, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_WORDWRAP)
-        self.txtWorkHistory.SetBackgroundColour(wx.Colour(250, 250, 250))
-        historyBox.Add(self.txtWorkHistory, 1, wx.EXPAND | wx.ALL, 5)
-        sizer.Add(historyBox, 1, wx.EXPAND | wx.ALL, 10)
-        
-        parent.SetSizer(sizer)
-        
-        # 이벤트 바인딩
-        self.btnInsert.Bind(wx.EVT_BUTTON, self.OnInsert)
-        self.btnUpdate.Bind(wx.EVT_BUTTON, self.OnUpdate)
-        self.btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
-        self.btnSelectAll.Bind(wx.EVT_BUTTON, self.OnSelectAll)
-        self.btnMonthSum.Bind(wx.EVT_BUTTON, self.OnMonthSum)
-        self.btnClear.Bind(wx.EVT_BUTTON, self.OnClear)
-    
-    def CreateRightPanel(self, parent):
-        """오른쪽 패널 (리스트 및 그래프) 생성"""
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        # 리스트 영역
-        listBox = wx.StaticBoxSizer(wx.VERTICAL, parent, "📊 거래 내역")
-        
-        self.list = wx.ListCtrl(parent, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
-        self.list.InsertColumn(0, "거래번호", width=80)
+        # 왼쪽: 목록
+        listBox = wx.StaticBoxSizer(wx.VERTICAL, panel, "📋 내역")
+        self.list = wx.ListCtrl(panel, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+        self.list.InsertColumn(0, "번호", width=60)
         self.list.InsertColumn(1, "날짜", width=100)
-        self.list.InsertColumn(2, "구분", width=70)
-        self.list.InsertColumn(3, "상세내역", width=150)
+        self.list.InsertColumn(2, "구분", width=60)
+        self.list.InsertColumn(3, "상세내역", width=180)
         self.list.InsertColumn(4, "수입", width=100)
         self.list.InsertColumn(5, "지출", width=100)
         self.list.InsertColumn(6, "비고", width=200)
         
+        self.list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
+        
         listBox.Add(self.list, 1, wx.EXPAND | wx.ALL, 5)
+        contentSizer.Add(listBox, 2, wx.EXPAND | wx.ALL, 5)
         
-        # 리스트 하단 버튼
-        listBtnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.btnDraw = wx.Button(parent, label="📈 그래프 생성")
-        self.btnErase = wx.Button(parent, label="🗑️ 그래프 지우기")
-        listBtnSizer.Add(self.btnDraw, 0, wx.ALL, 5)
-        listBtnSizer.Add(self.btnErase, 0, wx.ALL, 5)
-        listBox.Add(listBtnSizer, 0, wx.ALL, 5)
-        
-        sizer.Add(listBox, 1, wx.EXPAND | wx.ALL, 10)
-        
-        # 그래프 영역
-        graphBox = wx.StaticBoxSizer(wx.VERTICAL, parent, "📊 지출 현황 그래프")
-        self.graphPanel = Barchart(parent)
-        self.graphPanel.SetMinSize((400, 250))
+        # 오른쪽: 그래프
+        graphBox = wx.StaticBoxSizer(wx.VERTICAL, panel, "📊 지출 현황")
+        self.graphPanel = Barchart(panel)
         graphBox.Add(self.graphPanel, 1, wx.EXPAND | wx.ALL, 5)
-        sizer.Add(graphBox, 0, wx.EXPAND | wx.ALL, 10)
+        contentSizer.Add(graphBox, 1, wx.EXPAND | wx.ALL, 5)
         
-        parent.SetSizer(sizer)
+        mainSizer.Add(contentSizer, 1, wx.EXPAND | wx.ALL, 10)
         
-        # 이벤트 바인딩
-        self.list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnListItemSelected)
-        self.btnDraw.Bind(wx.EVT_BUTTON, self.OnDraw)
-        self.btnErase.Bind(wx.EVT_BUTTON, self.OnErase)
+        panel.SetSizer(mainSizer)
+        
+        # 초기 데이터 로드
+        self.OnSelectAll(None)
+        
+        self.Centre()
     
-    def UpdateStatusBar(self):
-        """상태바 업데이트"""
-        now = datetime.now()
-        date_str = f"📅 {now.year}-{now.month:02d}-{now.day:02d} {now.hour:02d}:{now.minute:02d}:{now.second:02d}"
-        self.statusBar.SetStatusText(date_str, 0)
-        self.statusBar.SetStatusText("✅ 준비", 1)
-        self.statusBar.SetStatusText("v3.0", 2)
-    
-    def UpdateSummary(self):
-        """요약 정보 업데이트"""
-        rows = HL_CRUD.selectAll()
-        total_income = 0
-        total_expense = 0
+    def CreateMenuBar(self):
+        """메뉴바 생성"""
+        menubar = wx.MenuBar()
         
-        for row in rows:
-            try:
-                if row[4]:  # 수입
-                    total_income += float(row[4])
-                if row[5]:  # 지출
-                    total_expense += float(row[5])
-            except (ValueError, TypeError):
-                continue
+        # 파일 메뉴
+        fileMenu = wx.Menu()
+        fileMenu.Append(wx.ID_ANY, "📤 Excel 내보내기\tCtrl+E", "데이터를 Excel 파일로 내보내기")
+        fileMenu.Append(wx.ID_ANY, "📥 CSV 가져오기\tCtrl+I", "CSV 파일에서 데이터 가져오기")
+        fileMenu.AppendSeparator()
+        fileMenu.Append(wx.ID_EXIT, "🚪 종료\tCtrl+Q", "프로그램 종료")
+        menubar.Append(fileMenu, "파일")
         
-        balance = total_income - total_expense
-        self.summaryText.SetLabel(
-            f"수입: {total_income:,.0f}원 | 지출: {total_expense:,.0f}원 | 잔액: {balance:,.0f}원"
-        )
-    
-    def OnAbout(self, event):
-        """프로그램 정보"""
-        info = wx.adv.AboutDialogInfo()
-        info.SetName("스마트 가계부")
-        info.SetVersion("3.0")
-        info.SetDescription("개인 재무 관리를 위한 스마트 가계부 프로그램")
-        info.SetWebSite("https://github.com/yourusername/smart-accountbook")
-        info.AddDeveloper("개발자")
-        info.SetLicence("MIT License")
+        # 도구 메뉴
+        toolsMenu = wx.Menu()
+        toolsMenu.Append(wx.ID_ANY, "🔍 고급 검색\tCtrl+F", "조건별 검색")
+        toolsMenu.Append(wx.ID_ANY, "📊 통계 보기\tCtrl+S", "월별/카테고리별 통계")
+        toolsMenu.Append(wx.ID_ANY, "💰 예산 관리\tCtrl+B", "월별 예산 설정 및 관리")
+        toolsMenu.Append(wx.ID_ANY, "⭐ 즐겨찾기\tCtrl+D", "자주 사용하는 항목 관리")
+        menubar.Append(toolsMenu, "도구")
         
-        wx.adv.AboutBox(info)
+        self.SetMenuBar(menubar)
+        
+        # 메뉴 이벤트 바인딩
+        self.Bind(wx.EVT_MENU, self.OnExport, id=fileMenu.FindItemByPosition(0).GetId())
+        self.Bind(wx.EVT_MENU, self.OnImport, id=fileMenu.FindItemByPosition(1).GetId())
+        self.Bind(wx.EVT_MENU, self.OnExit, id=wx.ID_EXIT)
+        
+        self.Bind(wx.EVT_MENU, self.OnSearch, id=toolsMenu.FindItemByPosition(0).GetId())
+        self.Bind(wx.EVT_MENU, self.OnStatistics, id=toolsMenu.FindItemByPosition(1).GetId())
+        self.Bind(wx.EVT_MENU, self.OnBudget, id=toolsMenu.FindItemByPosition(2).GetId())
+        self.Bind(wx.EVT_MENU, self.OnFavorites, id=toolsMenu.FindItemByPosition(3).GetId())
     
-    # 리스트 이벤트
-    def OnListItemSelected(self, event):
-        """리스트 항목 선택 시"""
+    def CreateInputArea(self, parent):
+        """입력 영역 생성"""
+        inputBox = wx.StaticBoxSizer(wx.VERTICAL, parent, "✏️ 입력")
+        
+        # 날짜 및 비고
+        topSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        topSizer.Add(wx.StaticText(parent, label="날짜:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.DatePick = wx.adv.DatePickerCtrl(parent, style=wx.adv.DP_DROPDOWN)
+        topSizer.Add(self.DatePick, 0, wx.ALL, 5)
+        
+        topSizer.Add(wx.StaticText(parent, label="비고:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.txtRemark = wx.TextCtrl(parent, size=(300, -1))
+        self.txtRemark.SetHint("메모나 설명을 입력하세요")
+        topSizer.Add(self.txtRemark, 1, wx.ALL, 5)
+        
+        inputBox.Add(topSizer, 0, wx.EXPAND | wx.ALL, 5)
+        
+        # 탭으로 수입/지출 구분
+        self.notebook = wx.Notebook(parent)
+        
+        # 수입 탭
+        incomePanel = wx.Panel(self.notebook)
+        incomeSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        incomeSizer.Add(wx.StaticText(incomePanel, label="항목:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.comboRevenue = wx.ComboBox(incomePanel, choices=[
+            '수입.급여', '수입.보너스', '수입.이자', '수입.배당', '수입.기타'
+        ], style=wx.CB_DROPDOWN, size=(200, -1))
+        incomeSizer.Add(self.comboRevenue, 0, wx.ALL, 5)
+        
+        incomeSizer.Add(wx.StaticText(incomePanel, label="금액:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.txtRevenue = wx.TextCtrl(incomePanel, size=(150, -1))
+        self.txtRevenue.SetHint("금액 입력")
+        incomeSizer.Add(self.txtRevenue, 0, wx.ALL, 5)
+        
+        btnAddIncome = wx.Button(incomePanel, label="✅ 수입 등록", size=(120, 35))
+        btnAddIncome.SetBackgroundColour('#4CAF50')
+        btnAddIncome.SetForegroundColour('#FFFFFF')
+        btnAddIncome.Bind(wx.EVT_BUTTON, self.OnAddIncome)
+        incomeSizer.Add(btnAddIncome, 0, wx.ALL, 5)
+        
+        incomePanel.SetSizer(incomeSizer)
+        self.notebook.AddPage(incomePanel, "💰 수입")
+        
+        # 지출 탭
+        expensePanel = wx.Panel(self.notebook)
+        expenseSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        expenseSizer.Add(wx.StaticText(expensePanel, label="항목:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.comboExpense = wx.ComboBox(expensePanel, choices=[
+            '지출.식비', '지출.교통비', '지출.통신비', '지출.주거비',
+            '지출.의료비', '지출.교육비', '지출.문화비', '지출.기타'
+        ], style=wx.CB_DROPDOWN, size=(200, -1))
+        expenseSizer.Add(self.comboExpense, 0, wx.ALL, 5)
+        
+        expenseSizer.Add(wx.StaticText(expensePanel, label="금액:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.txtExpense = wx.TextCtrl(expensePanel, size=(150, -1))
+        self.txtExpense.SetHint("금액 입력")
+        expenseSizer.Add(self.txtExpense, 0, wx.ALL, 5)
+        
+        btnAddExpense = wx.Button(expensePanel, label="✅ 지출 등록", size=(120, 35))
+        btnAddExpense.SetBackgroundColour('#F44336')
+        btnAddExpense.SetForegroundColour('#FFFFFF')
+        btnAddExpense.Bind(wx.EVT_BUTTON, self.OnAddExpense)
+        expenseSizer.Add(btnAddExpense, 0, wx.ALL, 5)
+        
+        expensePanel.SetSizer(expenseSizer)
+        self.notebook.AddPage(expensePanel, "💸 지출")
+        
+        inputBox.Add(self.notebook, 0, wx.EXPAND | wx.ALL, 5)
+        
+        # 버튼 영역
+        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        btnUpdate = wx.Button(parent, label="🔄 수정")
+        btnUpdate.Bind(wx.EVT_BUTTON, self.OnUpdate)
+        btnSizer.Add(btnUpdate, 0, wx.ALL, 5)
+        
+        btnDelete = wx.Button(parent, label="🗑️ 삭제")
+        btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
+        btnSizer.Add(btnDelete, 0, wx.ALL, 5)
+        
+        btnSizer.AddStretchSpacer()
+        
+        btnSelectAll = wx.Button(parent, label="📋 전체 조회")
+        btnSelectAll.Bind(wx.EVT_BUTTON, self.OnSelectAll)
+        btnSizer.Add(btnSelectAll, 0, wx.ALL, 5)
+        
+        btnSelectMonth = wx.Button(parent, label="📅 월별 조회")
+        btnSelectMonth.Bind(wx.EVT_BUTTON, self.OnSelectMonth)
+        btnSizer.Add(btnSelectMonth, 0, wx.ALL, 5)
+        
+        btnGraph = wx.Button(parent, label="📊 그래프")
+        btnGraph.Bind(wx.EVT_BUTTON, self.OnMakeGraph)
+        btnSizer.Add(btnGraph, 0, wx.ALL, 5)
+        
+        inputBox.Add(btnSizer, 0, wx.EXPAND | wx.ALL, 5)
+        
+        return inputBox
+    
+    def OnAddIncome(self, event):
+        """수입 등록"""
+        item = self.comboRevenue.GetValue()
+        amount = self.txtRevenue.GetValue()
+        remark = self.txtRemark.GetValue()
+        date = self.DatePick.GetValue().FormatISODate()
+        
+        if not item or not amount:
+            wx.MessageBox("항목과 금액을 입력하세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
+            return
+        
+        try:
+            amount = amount.replace(',', '')
+            float(amount)
+            
+            data = (date, '수입', item, amount, '0', remark)
+            HL_CRUD.insert(data)
+            
+            wx.MessageBox("수입이 등록되었습니다.", "등록 완료", wx.OK | wx.ICON_INFORMATION)
+            
+            # 입력 필드 초기화
+            self.txtRevenue.Clear()
+            self.txtRemark.Clear()
+            
+            # 목록 새로고침
+            self.OnSelectAll(None)
+            
+        except ValueError:
+            wx.MessageBox("올바른 금액을 입력하세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
+    
+    def OnAddExpense(self, event):
+        """지출 등록"""
+        item = self.comboExpense.GetValue()
+        amount = self.txtExpense.GetValue()
+        remark = self.txtRemark.GetValue()
+        date = self.DatePick.GetValue().FormatISODate()
+        
+        if not item or not amount:
+            wx.MessageBox("항목과 금액을 입력하세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
+            return
+        
+        try:
+            amount = amount.replace(',', '')
+            float(amount)
+            
+            data = (date, '지출', item, '0', amount, remark)
+            HL_CRUD.insert(data)
+            
+            wx.MessageBox("지출이 등록되었습니다.", "등록 완료", wx.OK | wx.ICON_INFORMATION)
+            
+            # 입력 필드 초기화
+            self.txtExpense.Clear()
+            self.txtRemark.Clear()
+            
+            # 목록 새로고침
+            self.OnSelectAll(None)
+            
+        except ValueError:
+            wx.MessageBox("올바른 금액을 입력하세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
+    
+    def OnUpdate(self, event):
+        """항목 수정"""
+        idx = self.list.GetFirstSelected()
+        if idx < 0:
+            wx.MessageBox("수정할 항목을 선택하세요.", "선택 오류", wx.OK | wx.ICON_WARNING)
+            return
+        
+        key = self.list.GetItemText(idx, 0)
+        date = self.DatePick.GetValue().FormatISODate()
+        remark = self.txtRemark.GetValue()
+        
+        # 현재 선택된 탭에 따라 데이터 구성
+        if self.notebook.GetSelection() == 0:  # 수입 탭
+            item = self.comboRevenue.GetValue()
+            revenue = self.txtRevenue.GetValue().replace(',', '')
+            expense = '0'
+            section = '수입'
+        else:  # 지출 탭
+            item = self.comboExpense.GetValue()
+            revenue = '0'
+            expense = self.txtExpense.GetValue().replace(',', '')
+            section = '지출'
+        
+        if not item:
+            wx.MessageBox("항목을 선택하세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
+            return
+        
+        try:
+            data = (key, date, section, item, revenue, expense, remark)
+            HL_CRUD.update(data)
+            
+            wx.MessageBox("수정되었습니다.", "수정 완료", wx.OK | wx.ICON_INFORMATION)
+            self.OnSelectAll(None)
+            
+        except Exception as e:
+            wx.MessageBox(f"수정 실패: {str(e)}", "오류", wx.OK | wx.ICON_ERROR)
+    
+    def OnDelete(self, event):
+        """항목 삭제"""
+        idx = self.list.GetFirstSelected()
+        if idx < 0:
+            wx.MessageBox("삭제할 항목을 선택하세요.", "선택 오류", wx.OK | wx.ICON_WARNING)
+            return
+        
+        result = wx.MessageBox("선택한 항목을 삭제하시겠습니까?", "삭제 확인",
+                              wx.YES_NO | wx.ICON_QUESTION)
+        
+        if result == wx.YES:
+            key = self.list.GetItemText(idx, 0)
+            HL_CRUD.delete(key)
+            
+            wx.MessageBox("삭제되었습니다.", "삭제 완료", wx.OK | wx.ICON_INFORMATION)
+            self.OnSelectAll(None)
+    
+    def OnItemSelected(self, event):
+        """목록 항목 선택시 입력 필드에 표시"""
         idx = event.GetIndex()
         
-        # 선택된 항목의 데이터 가져오기
-        key = self.list.GetItemText(idx, 0)
-        date = self.list.GetItemText(idx, 1)
-        section = self.list.GetItemText(idx, 2)
-        title = self.list.GetItemText(idx, 3)
-        revenue = self.list.GetItemText(idx, 4)
-        expense = self.list.GetItemText(idx, 5)
-        remark = self.list.GetItemText(idx, 6)
-        
         # 날짜 설정
+        date_str = self.list.GetItemText(idx, 1)
         try:
-            date_parts = date.split('-')
+            date_parts = date_str.split('-')
             if len(date_parts) == 3:
                 year, month, day = map(int, date_parts)
-                wx_date = wx.DateTime()
-                wx_date.Set(day, month - 1, year)
-                self.datePicker.SetValue(wx_date)
+                self.DatePick.SetValue(wx.DateTime(day, month-1, year))
         except:
             pass
         
-        # 구분에 따라 라디오 버튼 및 값 설정
-        if section == "수입":
-            self.RadioRevenue.SetValue(True)
-            self.comboRevenue.SetValue(title)
-            self.txtRevenue.SetValue(revenue.replace(',', ''))
-            self.txtExpense.SetValue("0")
+        # 구분에 따라 탭 전환
+        section = self.list.GetItemText(idx, 2)
+        item = self.list.GetItemText(idx, 3)
+        revenue = self.list.GetItemText(idx, 4).replace(',', '')
+        expense = self.list.GetItemText(idx, 5).replace(',', '')
+        remark = self.list.GetItemText(idx, 6)
+        
+        if section == '수입':
+            self.notebook.SetSelection(0)
+            self.comboRevenue.SetValue(item)
+            self.txtRevenue.SetValue(revenue)
         else:
-            self.RadioExpense.SetValue(True)
-            self.comboExpense.SetValue(title)
-            self.txtExpense.SetValue(expense.replace(',', ''))
-            self.txtRevenue.SetValue("0")
+            self.notebook.SetSelection(1)
+            self.comboExpense.SetValue(item)
+            self.txtExpense.SetValue(expense)
         
         self.txtRemark.SetValue(remark)
-        
-        self.txtWorkHistory.AppendText(f" 📌 항목 선택: {key} - {title}\n")
-    
-    # CRUD 이벤트
-    def OnInsert(self, event):
-        """데이터 추가"""
-        date = self.datePicker.GetValue().FormatISODate()
-        
-        if self.RadioRevenue.GetValue():
-            section = "수입"
-            title = self.comboRevenue.GetValue()
-            revenue = self.txtRevenue.GetValue().replace(',', '')
-            expense = "0"
-        else:
-            section = "지출"
-            title = self.comboExpense.GetValue()
-            revenue = "0"
-            expense = self.txtExpense.GetValue().replace(',', '')
-        
-        remark = self.txtRemark.GetValue()
-        
-        # 유효성 검사
-        if not title:
-            wx.MessageBox("항목을 선택해주세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
-            return
-        
-        try:
-            amount = float(revenue) if revenue != "0" else float(expense)
-            if amount <= 0:
-                wx.MessageBox("금액을 입력해주세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
-                return
-        except ValueError:
-            wx.MessageBox("올바른 금액을 입력해주세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
-            return
-        
-        # DB 삽입
-        HL_CRUD.insert((date, section, title, revenue, expense, remark))
-        
-        self.txtWorkHistory.AppendText(f" ✅ 추가 완료: {date} - {title} ({section})\n")
-        self.OnSelectAll(None)
-        self.OnClear(None)
-    
-    def OnUpdate(self, event):
-        """데이터 수정"""
-        idx = self.list.GetFirstSelected()
-        if idx < 0:
-            wx.MessageBox("수정할 항목을 선택해주세요.", "선택 오류", wx.OK | wx.ICON_WARNING)
-            return
-        
-        key = self.list.GetItemText(idx, 0)
-        date = self.datePicker.GetValue().FormatISODate()
-        
-        if self.RadioRevenue.GetValue():
-            section = "수입"
-            title = self.comboRevenue.GetValue()
-            revenue = self.txtRevenue.GetValue().replace(',', '')
-            expense = "0"
-        else:
-            section = "지출"
-            title = self.comboExpense.GetValue()
-            revenue = "0"
-            expense = self.txtExpense.GetValue().replace(',', '')
-        
-        remark = self.txtRemark.GetValue()
-        
-        # DB 업데이트
-        HL_CRUD.update((key, date, section, title, revenue, expense, remark))
-        
-        self.txtWorkHistory.AppendText(f" ✏️ 수정 완료: {key} - {title}\n")
-        self.OnSelectAll(None)
-    
-    def OnDelete(self, event):
-        """데이터 삭제"""
-        idx = self.list.GetFirstSelected()
-        if idx < 0:
-            wx.MessageBox("삭제할 항목을 선택해주세요.", "선택 오류", wx.OK | wx.ICON_WARNING)
-            return
-        
-        key = self.list.GetItemText(idx, 0)
-        title = self.list.GetItemText(idx, 3)
-        
-        # 확인 대화상자
-        dlg = wx.MessageDialog(
-            self,
-            f"'{title}' 항목을 삭제하시겠습니까?",
-            "삭제 확인",
-            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION
-        )
-        
-        if dlg.ShowModal() == wx.ID_YES:
-            HL_CRUD.delete(key)
-            self.txtWorkHistory.AppendText(f" 🗑️ 삭제 완료: {key} - {title}\n")
-            self.OnSelectAll(None)
-            self.OnClear(None)
-        
-        dlg.Destroy()
     
     def OnSelectAll(self, event):
         """전체 조회"""
@@ -882,28 +774,18 @@ class MyFrame(wx.Frame):
             self.list.SetItem(idx, 4, f"{float(row[4]):,.0f}" if row[4] else "0")
             self.list.SetItem(idx, 5, f"{float(row[5]):,.0f}" if row[5] else "0")
             self.list.SetItem(idx, 6, row[6])
-        
-        self.UpdateSummary()
-        self.txtWorkHistory.AppendText(f" 📋 전체 조회 완료 - {len(rows)}건\n")
-        
-        if event:
-            event.Skip()
+            
+            # 수입은 파란색, 지출은 빨간색
+            if row[2] == '수입':
+                self.list.SetItemTextColour(idx, wx.Colour(33, 150, 243))
+            else:
+                self.list.SetItemTextColour(idx, wx.Colour(244, 67, 54))
     
-    def OnMonthSum(self, event):
-        """월별 합계"""
-        # 월 선택 다이얼로그
+    def OnSelectMonth(self, event):
+        """월별 조회"""
         months = HL_CRUD.selectMonthList()
         
-        if not months:
-            wx.MessageBox("조회할 데이터가 없습니다.", "정보", wx.OK | wx.ICON_INFORMATION)
-            return
-        
-        dlg = wx.SingleChoiceDialog(
-            self,
-            "월을 선택하세요:",
-            "월별 합계",
-            months
-        )
+        dlg = wx.SingleChoiceDialog(self, "조회할 월을 선택하세요:", "월별 조회", months)
         
         if dlg.ShowModal() == wx.ID_OK:
             selected_month = dlg.GetStringSelection()
@@ -919,39 +801,22 @@ class MyFrame(wx.Frame):
                 self.list.SetItem(idx, 4, f"{float(row[4]):,.0f}" if row[4] else "0")
                 self.list.SetItem(idx, 5, f"{float(row[5]):,.0f}" if row[5] else "0")
                 self.list.SetItem(idx, 6, row[6])
-            
-            self.txtWorkHistory.AppendText(f" 📊 월별합계 조회: {selected_month}\n")
+                
+                if row[2] == '수입':
+                    self.list.SetItemTextColour(idx, wx.Colour(33, 150, 243))
+                else:
+                    self.list.SetItemTextColour(idx, wx.Colour(244, 67, 54))
         
         dlg.Destroy()
-        
-        if event:
-            event.Skip()
     
-    def OnClear(self, event):
-        """입력 필드 초기화"""
-        self.datePicker.SetValue(wx.DateTime.Today())
-        self.RadioRevenue.SetValue(True)
-        self.comboRevenue.SetValue("")
-        self.comboExpense.SetValue("")
-        self.txtRevenue.SetValue("0")
-        self.txtExpense.SetValue("0")
-        self.txtRemark.SetValue("")
-        
-        self.txtWorkHistory.AppendText(" 🔄 입력 필드 초기화\n")
-        
-        if event:
-            event.Skip()
-    
-    def OnDraw(self, event):
+    def OnMakeGraph(self, event):
         """그래프 생성"""
         rows = HL_CRUD.selectAll()
-        
-        # 지출 데이터만 추출
         expense_data = defaultdict(float)
         
         for row in rows:
-            if len(row) >= 6 and row[2] == '지출':
-                title = row[3]
+            if row[2] == '지출':
+                title = row[3].split('.')[0] if '.' in row[3] else row[3]
                 try:
                     amount = float(row[5]) if row[5] else 0
                     if amount > 0:
@@ -962,24 +827,9 @@ class MyFrame(wx.Frame):
         if expense_data:
             self.graphPanel.SetData(dict(expense_data))
             self.graphPanel.SetBackgroundColour('#FFFFFF')
-            self.txtWorkHistory.AppendText(" 📊 지출현황 그래프 생성완료.\n")
+            wx.MessageBox("그래프가 생성되었습니다.", "그래프 생성", wx.OK | wx.ICON_INFORMATION)
         else:
-            self.txtWorkHistory.AppendText(" ⚠️ 표시할 지출 데이터가 없습니다.\n")
-        
-        if event:
-            event.Skip()
-    
-    def OnErase(self, event):
-        """그래프 지우기"""
-        try:
-            self.graphPanel.Destroy()
-            self.graphPanel = Barchart(self.GetParent())
-            self.txtWorkHistory.AppendText(" 🗑️ 그래프 지우기 완료.\n")
-        except:
-            self.txtWorkHistory.AppendText(" ⚠️ 그래프 지우기 실패.\n")
-        
-        if event:
-            event.Skip()
+            wx.MessageBox("표시할 지출 데이터가 없습니다.", "그래프 생성", wx.OK | wx.ICON_WARNING)
     
     # 메뉴 이벤트 핸들러
     def OnExport(self, event):
@@ -1031,7 +881,6 @@ class MyFrame(wx.Frame):
                 
                 wb.save(filepath)
                 
-                self.txtWorkHistory.AppendText(f" ✅ Excel 파일로 내보내기 완료: {filepath}\n")
                 wx.MessageBox("Excel 파일로 저장되었습니다.", "내보내기 완료", wx.OK | wx.ICON_INFORMATION)
             
             dlg.Destroy()
@@ -1060,11 +909,9 @@ class MyFrame(wx.Frame):
                     
                     for row in reader:
                         if len(row) >= 6:
-                            # date, section, title, revenue, expense, remark
                             HL_CRUD.insert((row[1], row[2], row[3], row[4], row[5], row[6]))
                             count += 1
                 
-                self.txtWorkHistory.AppendText(f" ✅ CSV 가져오기 완료: {count}건\n")
                 wx.MessageBox(f"{count}건의 데이터를 가져왔습니다.", "가져오기 완료", wx.OK | wx.ICON_INFORMATION)
                 self.OnSelectAll(None)
                 
@@ -1130,7 +977,7 @@ class MyFrame(wx.Frame):
                 self.list.SetItem(idx, 6, row[6])
                 count += 1
             
-            self.txtWorkHistory.AppendText(f" 🔍 검색 완료 - {count}건 발견\n")
+            wx.MessageBox(f"검색 완료 - {count}건 발견", "검색 결과", wx.OK | wx.ICON_INFORMATION)
         
         dlg.Destroy()
     
@@ -1156,16 +1003,16 @@ class MyFrame(wx.Frame):
             if favorite:
                 # 즐겨찾기 항목을 입력 필드에 자동 채우기
                 if favorite[0] == '수입':
-                    self.RadioRevenue.SetValue(True)
+                    self.notebook.SetSelection(0)
                     self.comboRevenue.SetValue(favorite[1])
                     self.txtRevenue.SetValue(favorite[2])
                 else:
-                    self.RadioExpense.SetValue(True)
+                    self.notebook.SetSelection(1)
                     self.comboExpense.SetValue(favorite[1])
                     self.txtExpense.SetValue(favorite[2])
                 
                 self.txtRemark.SetValue(favorite[3])
-                self.txtWorkHistory.AppendText(" ⭐ 즐겨찾기 항목이 적용되었습니다.\n")
+                wx.MessageBox("즐겨찾기 항목이 적용되었습니다.", "적용 완료", wx.OK | wx.ICON_INFORMATION)
         
         dlg.Destroy()
 
