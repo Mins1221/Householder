@@ -56,43 +56,43 @@ except ImportError:
 ## 색상 테마 설정 - macOS Style
 ###########################################################################
 class ColorTheme:
-    # 아이보리 스타일 배경
-    BG_PRIMARY = wx.Colour(255, 253, 240)  # Ivory background
-    BG_SECONDARY = wx.Colour(255, 255, 250)  # Light ivory
-    BG_TERTIARY = wx.Colour(252, 250, 242)  # Warm ivory
+    # 밝은 아이보리 스타일 배경
+    BG_PRIMARY = wx.Colour(255, 255, 248)  # Very light ivory background
+    BG_SECONDARY = wx.Colour(255, 255, 252)  # Almost white ivory
+    BG_TERTIARY = wx.Colour(254, 254, 250)  # Soft ivory
     
     # 카드 & 패널
-    CARD_BG = wx.Colour(255, 255, 250)
-    CARD_SHADOW = wx.Colour(0, 0, 0, 8)  # Subtle shadow
-    PANEL_BG = wx.Colour(252, 250, 242)
+    CARD_BG = wx.Colour(255, 255, 252)
+    CARD_SHADOW = wx.Colour(0, 0, 0, 5)  # Very subtle shadow
+    PANEL_BG = wx.Colour(254, 254, 250)
     
     # 텍스트 컬러
-    TEXT_PRIMARY = wx.Colour(28, 28, 30)  # Near black
-    TEXT_SECONDARY = wx.Colour(99, 99, 102)  # Gray
-    TEXT_TERTIARY = wx.Colour(142, 142, 147)  # Light gray
+    TEXT_PRIMARY = wx.Colour(60, 60, 60)  # Softer dark gray
+    TEXT_SECONDARY = wx.Colour(120, 120, 120)  # Medium gray
+    TEXT_TERTIARY = wx.Colour(160, 160, 160)  # Light gray
     
     # macOS 액센트 컬러 (블루)
-    ACCENT_BLUE = wx.Colour(0, 122, 255)
-    ACCENT_BLUE_HOVER = wx.Colour(10, 132, 255)
-    ACCENT_BLUE_PRESSED = wx.Colour(0, 112, 245)
+    ACCENT_BLUE = wx.Colour(100, 160, 255)  # Lighter blue
+    ACCENT_BLUE_HOVER = wx.Colour(120, 180, 255)
+    ACCENT_BLUE_PRESSED = wx.Colour(80, 140, 235)
     
     # 시스템 컬러
-    SUCCESS = wx.Colour(52, 199, 89)  # Green
-    WARNING = wx.Colour(255, 159, 10)  # Orange
-    DANGER = wx.Colour(255, 59, 48)  # Red
-    INFO = wx.Colour(90, 200, 250)  # Light Blue
+    SUCCESS = wx.Colour(100, 220, 130)  # Lighter green
+    WARNING = wx.Colour(255, 180, 80)  # Lighter orange
+    DANGER = wx.Colour(255, 120, 110)  # Lighter red
+    INFO = wx.Colour(130, 210, 255)  # Lighter blue
     
     # 수입/지출 색상
-    INCOME_COLOR = wx.Colour(52, 199, 89)
-    EXPENSE_COLOR = wx.Colour(255, 69, 58)
+    INCOME_COLOR = wx.Colour(100, 220, 130)
+    EXPENSE_COLOR = wx.Colour(255, 130, 120)
     
     # Border
-    BORDER_LIGHT = wx.Colour(220, 220, 225)
-    BORDER_MEDIUM = wx.Colour(200, 200, 205)
+    BORDER_LIGHT = wx.Colour(240, 240, 238)
+    BORDER_MEDIUM = wx.Colour(230, 230, 228)
     
     # Sidebar
-    SIDEBAR_BG = wx.Colour(248, 246, 238)
-    SIDEBAR_SELECTED = wx.Colour(0, 122, 255, 15)
+    SIDEBAR_BG = wx.Colour(252, 252, 248)
+    SIDEBAR_SELECTED = wx.Colour(100, 160, 255, 20)
 
 
 ###########################################################################
