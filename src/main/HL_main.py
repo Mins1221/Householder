@@ -56,15 +56,15 @@ except ImportError:
 ## 색상 테마 설정 - macOS Style
 ###########################################################################
 class ColorTheme:
-    # macOS 스타일 배경
-    BG_PRIMARY = wx.Colour(242, 242, 247)  # macOS light background
-    BG_SECONDARY = wx.Colour(255, 255, 255)  # White
-    BG_TERTIARY = wx.Colour(250, 250, 252)  # Subtle off-white
+    # 아이보리 스타일 배경
+    BG_PRIMARY = wx.Colour(255, 253, 240)  # Ivory background
+    BG_SECONDARY = wx.Colour(255, 255, 250)  # Light ivory
+    BG_TERTIARY = wx.Colour(252, 250, 242)  # Warm ivory
     
     # 카드 & 패널
-    CARD_BG = wx.Colour(255, 255, 255)
+    CARD_BG = wx.Colour(255, 255, 250)
     CARD_SHADOW = wx.Colour(0, 0, 0, 8)  # Subtle shadow
-    PANEL_BG = wx.Colour(248, 248, 252)
+    PANEL_BG = wx.Colour(252, 250, 242)
     
     # 텍스트 컬러
     TEXT_PRIMARY = wx.Colour(28, 28, 30)  # Near black
@@ -91,7 +91,7 @@ class ColorTheme:
     BORDER_MEDIUM = wx.Colour(200, 200, 205)
     
     # Sidebar
-    SIDEBAR_BG = wx.Colour(246, 246, 250)
+    SIDEBAR_BG = wx.Colour(248, 246, 238)
     SIDEBAR_SELECTED = wx.Colour(0, 122, 255, 15)
 
 
@@ -167,7 +167,7 @@ class ModernButton(wx.Button):
             else:
                 gc.SetPen(wx.TRANSPARENT_PEN)
             
-            gc.DrawRoundedRectangle(0, 0, width, height, 8)
+            gc.DrawRoundedRectangle(0, 0, width, height, 18)
             
             # 텍스트 그리기
             gc.SetFont(self.GetFont(), self.fg_color)
@@ -239,12 +239,12 @@ class CardPanel(wx.Panel):
             if self.show_shadow:
                 gc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 5)))
                 gc.SetPen(wx.TRANSPARENT_PEN)
-                gc.DrawRoundedRectangle(2, 2, width-4, height-4, 12)
+                gc.DrawRoundedRectangle(2, 2, width-4, height-4, 18)
             
             # 배경
             gc.SetBrush(wx.Brush(ColorTheme.CARD_BG))
             gc.SetPen(wx.Pen(ColorTheme.BORDER_LIGHT, 1))
-            gc.DrawRoundedRectangle(0, 0, width, height, 12)
+            gc.DrawRoundedRectangle(0, 0, width, height, 18)
 
 
 ###########################################################################
