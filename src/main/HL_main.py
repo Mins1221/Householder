@@ -2,7 +2,7 @@
 
 ###########################################################################
 ## Modern Smart Household Account Book
-## 모던 스마트 가계부 v6.0 - macOS Style UI
+## 모던 스마트 가계부 v6.0 - 안정화 버전
 ###########################################################################
 
 import wx
@@ -47,163 +47,51 @@ except ImportError:
     class Barchart(wx.Panel):
         def __init__(self, parent):
             super().__init__(parent)
+            self.SetBackgroundColour(wx.WHITE)
             
         def SetData(self, data):
             pass
 
 
 ###########################################################################
-## 색상 테마 설정 - macOS Style
+## 색상 테마 설정 - 기본 안정 버전
 ###########################################################################
 class ColorTheme:
-    # 밝은 아이보리 스타일 배경
-    BG_PRIMARY = wx.Colour(255, 255, 248)  # Very light ivory background
-    BG_SECONDARY = wx.Colour(255, 255, 252)  # Almost white ivory
-    BG_TERTIARY = wx.Colour(254, 254, 250)  # Soft ivory
+    # 배경색
+    BG_PRIMARY = wx.Colour(245, 245, 250)
+    BG_SECONDARY = wx.WHITE
     
-    # 카드 & 패널
-    CARD_BG = wx.Colour(255, 255, 252)
-    CARD_SHADOW = wx.Colour(0, 0, 0, 5)  # Very subtle shadow
-    PANEL_BG = wx.Colour(254, 254, 250)
+    # 패널 & 카드
+    CARD_BG = wx.WHITE
+    PANEL_BG = wx.Colour(250, 250, 252)
     
-    # 텍스트 컬러
-    TEXT_PRIMARY = wx.Colour(60, 60, 60)  # Softer dark gray
-    TEXT_SECONDARY = wx.Colour(120, 120, 120)  # Medium gray
-    TEXT_TERTIARY = wx.Colour(160, 160, 160)  # Light gray
+    # 텍스트
+    TEXT_PRIMARY = wx.Colour(50, 50, 50)
+    TEXT_SECONDARY = wx.Colour(100, 100, 100)
     
-    # macOS 액센트 컬러 (블루)
-    ACCENT_BLUE = wx.Colour(100, 160, 255)  # Lighter blue
-    ACCENT_BLUE_HOVER = wx.Colour(120, 180, 255)
-    ACCENT_BLUE_PRESSED = wx.Colour(80, 140, 235)
+    # 액센트 컬러
+    ACCENT = wx.Colour(0, 122, 255)
+    ACCENT_LIGHT = wx.Colour(100, 160, 255)
     
-    # 시스템 컬러
-    SUCCESS = wx.Colour(100, 220, 130)  # Lighter green
-    WARNING = wx.Colour(255, 180, 80)  # Lighter orange
-    DANGER = wx.Colour(255, 120, 110)  # Lighter red
-    INFO = wx.Colour(130, 210, 255)  # Lighter blue
+    # 상태 컬러
+    SUCCESS = wx.Colour(52, 199, 89)
+    WARNING = wx.Colour(255, 149, 0)
+    DANGER = wx.Colour(255, 59, 48)
     
-    # 수입/지출 색상
-    INCOME_COLOR = wx.Colour(100, 220, 130)
-    EXPENSE_COLOR = wx.Colour(255, 130, 120)
+    # 수입/지출
+    INCOME_COLOR = wx.Colour(52, 199, 89)
+    EXPENSE_COLOR = wx.Colour(255, 59, 48)
     
     # Border
-    BORDER_LIGHT = wx.Colour(240, 240, 238)
-    BORDER_MEDIUM = wx.Colour(230, 230, 228)
-    
-    # Sidebar
-    SIDEBAR_BG = wx.Colour(252, 252, 248)
-    SIDEBAR_SELECTED = wx.Colour(100, 160, 255, 20)
+    BORDER = wx.Colour(220, 220, 220)
 
 
 ###########################################################################
-## 커스텀 버튼 (macOS 스타일)
-###########################################################################
-class ModernButton(wx.Button):
-    def __init__(self, parent, label="", size=wx.DefaultSize, primary=False, danger=False):
-        super().__init__(parent, label=label, size=size, style=wx.BORDER_NONE)
-        
-        self.primary = primary
-        self.danger = danger
-        self.is_hovered = False
-        self.is_pressed = False
-        
-        # 기본 스타일 설정
-        self.SetupStyle()
-        
-        # 이벤트 바인딩
-        self.Bind(wx.EVT_ENTER_WINDOW, self.OnEnter)
-        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
-        self.Bind(wx.EVT_LEFT_DOWN, self.OnPress)
-        self.Bind(wx.EVT_LEFT_UP, self.OnRelease)
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-    
-    def SetupStyle(self):
-        font = self.GetFont()
-        font.SetPointSize(11)
-        font.SetWeight(wx.FONTWEIGHT_MEDIUM)
-        self.SetFont(font)
-        
-        if self.primary:
-            self.bg_color = ColorTheme.ACCENT_BLUE
-            self.fg_color = wx.WHITE
-        elif self.danger:
-            self.bg_color = ColorTheme.DANGER
-            self.fg_color = wx.WHITE
-        else:
-            self.bg_color = ColorTheme.CARD_BG
-            self.fg_color = ColorTheme.TEXT_PRIMARY
-        
-        self.SetMinSize((100, 36))
-    
-    def OnPaint(self, event):
-        dc = wx.AutoBufferedPaintDC(self)
-        gc = wx.GraphicsContext.Create(dc)
-        
-        if gc:
-            width, height = self.GetSize()
-            
-            # 배경색 결정
-            if self.is_pressed:
-                if self.primary:
-                    color = ColorTheme.ACCENT_BLUE_PRESSED
-                elif self.danger:
-                    color = wx.Colour(245, 49, 38)
-                else:
-                    color = ColorTheme.PANEL_BG
-            elif self.is_hovered:
-                if self.primary:
-                    color = ColorTheme.ACCENT_BLUE_HOVER
-                elif self.danger:
-                    color = wx.Colour(255, 79, 68)
-                else:
-                    color = wx.Colour(245, 245, 247)
-            else:
-                color = self.bg_color
-            
-            # 둥근 사각형 그리기
-            gc.SetBrush(wx.Brush(color))
-            if not self.primary and not self.danger:
-                gc.SetPen(wx.Pen(ColorTheme.BORDER_LIGHT, 1))
-            else:
-                gc.SetPen(wx.TRANSPARENT_PEN)
-            
-            gc.DrawRoundedRectangle(0, 0, width, height, 18)
-            
-            # 텍스트 그리기
-            gc.SetFont(self.GetFont(), self.fg_color)
-            text = self.GetLabel()
-            text_width, text_height = gc.GetTextExtent(text)
-            text_x = (width - text_width) / 2
-            text_y = (height - text_height) / 2
-            gc.DrawText(text, text_x, text_y)
-    
-    def OnEnter(self, event):
-        self.is_hovered = True
-        self.Refresh()
-    
-    def OnLeave(self, event):
-        self.is_hovered = False
-        self.Refresh()
-    
-    def OnPress(self, event):
-        self.is_pressed = True
-        self.Refresh()
-        event.Skip()
-    
-    def OnRelease(self, event):
-        self.is_pressed = False
-        self.Refresh()
-        event.Skip()
-
-
-###########################################################################
-## 카드 패널 (macOS 스타일)
+## 카드 패널
 ###########################################################################
 class CardPanel(wx.Panel):
-    def __init__(self, parent, title="", show_shadow=True):
-        super().__init__(parent, style=wx.BORDER_NONE)
-        
-        self.show_shadow = show_shadow
+    def __init__(self, parent, title=""):
+        super().__init__(parent)
         self.SetBackgroundColour(ColorTheme.CARD_BG)
         
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -211,948 +99,731 @@ class CardPanel(wx.Panel):
         if title:
             title_text = wx.StaticText(self, label=title)
             font = title_text.GetFont()
-            font.SetPointSize(16)
-            font.SetWeight(wx.FONTWEIGHT_SEMIBOLD)
+            font.SetPointSize(14)
+            font.SetWeight(wx.FONTWEIGHT_BOLD)
             title_text.SetFont(font)
             title_text.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
             
-            self.main_sizer.Add(title_text, 0, wx.ALL, 20)
+            self.main_sizer.Add(title_text, 0, wx.ALL, 15)
             
             # 구분선
             line = wx.Panel(self, size=(-1, 1))
-            line.SetBackgroundColour(ColorTheme.BORDER_LIGHT)
-            self.main_sizer.Add(line, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 20)
+            line.SetBackgroundColour(ColorTheme.BORDER)
+            self.main_sizer.Add(line, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 15)
         
         self.SetSizer(self.main_sizer)
-        
-        # 둥근 모서리 효과를 위한 페인트 이벤트
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
     
-    def OnPaint(self, event):
-        dc = wx.AutoBufferedPaintDC(self)
-        gc = wx.GraphicsContext.Create(dc)
-        
-        if gc:
-            width, height = self.GetSize()
-            
-            # 그림자 효과 (선택적)
-            if self.show_shadow:
-                gc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 5)))
-                gc.SetPen(wx.TRANSPARENT_PEN)
-                gc.DrawRoundedRectangle(2, 2, width-4, height-4, 18)
-            
-            # 배경
-            gc.SetBrush(wx.Brush(ColorTheme.CARD_BG))
-            gc.SetPen(wx.Pen(ColorTheme.BORDER_LIGHT, 1))
-            gc.DrawRoundedRectangle(0, 0, width, height, 18)
+    def AddContent(self, content):
+        self.main_sizer.Add(content, 1, wx.EXPAND | wx.ALL, 15)
 
 
 ###########################################################################
-## 즐겨찾기 관리 다이얼로그 (macOS 스타일)
-###########################################################################
-class FavoritesDialog(wx.Dialog):
-    def __init__(self, parent):
-        super().__init__(parent, title="즐겨찾기 관리", size=(680, 550), 
-                        style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
-        
-        self.SetBackgroundColour(ColorTheme.BG_PRIMARY)
-        
-        panel = wx.Panel(self)
-        panel.SetBackgroundColour(ColorTheme.BG_PRIMARY)
-        
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        # 헤더
-        header = wx.StaticText(panel, label="⭐ 즐겨찾기 목록")
-        font = header.GetFont()
-        font.SetPointSize(20)
-        font.SetWeight(wx.FONTWEIGHT_SEMIBOLD)
-        header.SetFont(font)
-        header.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        sizer.Add(header, 0, wx.ALL, 25)
-        
-        # 즐겨찾기 목록 (카드 스타일)
-        list_card = CardPanel(panel, show_shadow=False)
-        list_sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        self.favoritesList = wx.ListCtrl(list_card, style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_NONE)
-        self.favoritesList.InsertColumn(0, "구분", width=110)
-        self.favoritesList.InsertColumn(1, "항목", width=200)
-        self.favoritesList.InsertColumn(2, "금액", width=140)
-        self.favoritesList.InsertColumn(3, "비고", width=190)
-        
-        self.favoritesList.SetBackgroundColour(ColorTheme.CARD_BG)
-        self.favoritesList.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        
-        list_sizer.Add(self.favoritesList, 1, wx.EXPAND | wx.ALL, 20)
-        list_card.main_sizer.Add(list_sizer, 1, wx.EXPAND)
-        
-        sizer.Add(list_card, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 25)
-        
-        # 버튼
-        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.AddStretchSpacer()
-        
-        self.btnDelete = ModernButton(panel, "삭제", size=(100, 36), danger=True)
-        self.btnApply = ModernButton(panel, "적용", size=(100, 36), primary=True)
-        self.btnClose = ModernButton(panel, "닫기", size=(100, 36))
-        
-        btnSizer.Add(self.btnDelete, 0, wx.RIGHT, 10)
-        btnSizer.Add(self.btnApply, 0, wx.RIGHT, 10)
-        btnSizer.Add(self.btnClose, 0)
-        
-        sizer.Add(btnSizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 25)
-        
-        panel.SetSizer(sizer)
-        
-        # 이벤트 바인딩
-        self.btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
-        self.btnApply.Bind(wx.EVT_BUTTON, self.OnApply)
-        self.btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
-        
-        self.LoadFavorites()
-        
-        self.selected_favorite = None
-    
-    def LoadFavorites(self):
-        self.favoritesList.DeleteAllItems()
-        try:
-            with open('favorites.csv', 'r', encoding='utf-8') as f:
-                reader = csv.reader(f)
-                for row in reader:
-                    if len(row) >= 4:
-                        idx = self.favoritesList.InsertItem(self.favoritesList.GetItemCount(), row[0])
-                        self.favoritesList.SetItem(idx, 1, row[1])
-                        self.favoritesList.SetItem(idx, 2, row[2])
-                        self.favoritesList.SetItem(idx, 3, row[3])
-        except FileNotFoundError:
-            pass
-    
-    def OnDelete(self, event):
-        idx = self.favoritesList.GetFirstSelected()
-        if idx == -1:
-            wx.MessageBox("삭제할 항목을 선택하세요.", "알림", wx.OK | wx.ICON_WARNING)
-            return
-        
-        if wx.MessageBox("선택한 즐겨찾기를 삭제하시겠습니까?", "확인", 
-                        wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
-            self.favoritesList.DeleteItem(idx)
-            self.SaveFavorites()
-    
-    def OnApply(self, event):
-        idx = self.favoritesList.GetFirstSelected()
-        if idx == -1:
-            wx.MessageBox("적용할 항목을 선택하세요.", "알림", wx.OK | wx.ICON_WARNING)
-            return
-        
-        section = self.favoritesList.GetItemText(idx, 0)
-        title = self.favoritesList.GetItemText(idx, 1)
-        amount = self.favoritesList.GetItemText(idx, 2)
-        remark = self.favoritesList.GetItemText(idx, 3)
-        
-        self.selected_favorite = (section, title, amount, remark)
-        self.EndModal(wx.ID_OK)
-    
-    def OnClose(self, event):
-        self.EndModal(wx.ID_CANCEL)
-    
-    def SaveFavorites(self):
-        try:
-            with open('favorites.csv', 'w', encoding='utf-8', newline='') as f:
-                writer = csv.writer(f)
-                for i in range(self.favoritesList.GetItemCount()):
-                    row = [
-                        self.favoritesList.GetItemText(i, 0),
-                        self.favoritesList.GetItemText(i, 1),
-                        self.favoritesList.GetItemText(i, 2),
-                        self.favoritesList.GetItemText(i, 3)
-                    ]
-                    writer.writerow(row)
-        except Exception as e:
-            wx.MessageBox(f"저장 실패: {str(e)}", "오류", wx.OK | wx.ICON_ERROR)
-    
-    def GetSelectedFavorite(self):
-        return self.selected_favorite
-
-
-###########################################################################
-## 검색 다이얼로그 (macOS 스타일)
+## 검색 다이얼로그
 ###########################################################################
 class SearchDialog(wx.Dialog):
     def __init__(self, parent):
-        super().__init__(parent, title="고급 검색", size=(550, 480),
-                        style=wx.DEFAULT_DIALOG_STYLE)
-        
+        super().__init__(parent, title="고급 검색", size=(500, 500))
         self.SetBackgroundColour(ColorTheme.BG_PRIMARY)
         
         panel = wx.Panel(self)
         panel.SetBackgroundColour(ColorTheme.BG_PRIMARY)
-        
         sizer = wx.BoxSizer(wx.VERTICAL)
         
-        # 헤더
-        header = wx.StaticText(panel, label="🔍 고급 검색")
-        font = header.GetFont()
-        font.SetPointSize(20)
-        font.SetWeight(wx.FONTWEIGHT_SEMIBOLD)
-        header.SetFont(font)
-        header.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        sizer.Add(header, 0, wx.ALL, 25)
-        
-        # 검색 옵션 카드
-        card = CardPanel(panel, show_shadow=False)
-        card_sizer = wx.BoxSizer(wx.VERTICAL)
-        
         # 날짜 범위
-        date_sizer = wx.FlexGridSizer(2, 2, 15, 20)
-        date_sizer.AddGrowableCol(1, 1)
+        date_card = CardPanel(panel, "날짜 범위")
+        date_content = wx.Panel(date_card)
+        date_content.SetBackgroundColour(ColorTheme.CARD_BG)
+        date_sizer = wx.FlexGridSizer(2, 2, 10, 10)
         
-        start_label = wx.StaticText(card, label="시작 날짜")
-        start_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        self.startDate = wx.adv.DatePickerCtrl(card, style=wx.adv.DP_DROPDOWN)
+        date_sizer.Add(wx.StaticText(date_content, label="시작일:"), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.start_date = wx.adv.DatePickerCtrl(date_content, style=wx.adv.DP_DROPDOWN | wx.adv.DP_SHOWCENTURY)
+        date_sizer.Add(self.start_date, 1, wx.EXPAND)
         
-        end_label = wx.StaticText(card, label="종료 날짜")
-        end_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        self.endDate = wx.adv.DatePickerCtrl(card, style=wx.adv.DP_DROPDOWN)
+        date_sizer.Add(wx.StaticText(date_content, label="종료일:"), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.end_date = wx.adv.DatePickerCtrl(date_content, style=wx.adv.DP_DROPDOWN | wx.adv.DP_SHOWCENTURY)
+        self.end_date.SetValue(wx.DateTime.Today())
+        date_sizer.Add(self.end_date, 1, wx.EXPAND)
         
-        date_sizer.Add(start_label, 0, wx.ALIGN_CENTER_VERTICAL)
-        date_sizer.Add(self.startDate, 1, wx.EXPAND)
-        date_sizer.Add(end_label, 0, wx.ALIGN_CENTER_VERTICAL)
-        date_sizer.Add(self.endDate, 1, wx.EXPAND)
+        date_content.SetSizer(date_sizer)
+        date_card.AddContent(date_content)
+        sizer.Add(date_card, 0, wx.EXPAND | wx.ALL, 10)
         
-        card_sizer.Add(date_sizer, 0, wx.EXPAND | wx.ALL, 20)
-        
-        # 구분선
-        line = wx.Panel(card, size=(-1, 1))
-        line.SetBackgroundColour(ColorTheme.BORDER_LIGHT)
-        card_sizer.Add(line, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 20)
-        
-        # 타입 선택
+        # 구분
+        type_card = CardPanel(panel, "거래 유형")
+        type_content = wx.Panel(type_card)
+        type_content.SetBackgroundColour(ColorTheme.CARD_BG)
         type_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        type_label = wx.StaticText(card, label="구분")
-        type_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
         
-        self.chkIncome = wx.CheckBox(card, label="수입")
-        self.chkExpense = wx.CheckBox(card, label="지출")
-        self.chkIncome.SetValue(True)
-        self.chkExpense.SetValue(True)
+        self.chk_income = wx.CheckBox(type_content, label="수입")
+        self.chk_income.SetValue(True)
+        self.chk_expense = wx.CheckBox(type_content, label="지출")
+        self.chk_expense.SetValue(True)
         
-        type_sizer.Add(type_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 20)
-        type_sizer.Add(self.chkIncome, 0, wx.RIGHT, 20)
-        type_sizer.Add(self.chkExpense, 0)
+        type_sizer.Add(self.chk_income, 0, wx.ALL, 5)
+        type_sizer.Add(self.chk_expense, 0, wx.ALL, 5)
         
-        card_sizer.Add(type_sizer, 0, wx.ALL, 20)
-        
-        # 구분선
-        line2 = wx.Panel(card, size=(-1, 1))
-        line2.SetBackgroundColour(ColorTheme.BORDER_LIGHT)
-        card_sizer.Add(line2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 20)
+        type_content.SetSizer(type_sizer)
+        type_card.AddContent(type_content)
+        sizer.Add(type_card, 0, wx.EXPAND | wx.ALL, 10)
         
         # 금액 범위
-        amount_sizer = wx.FlexGridSizer(2, 2, 15, 20)
-        amount_sizer.AddGrowableCol(1, 1)
+        amount_card = CardPanel(panel, "금액 범위")
+        amount_content = wx.Panel(amount_card)
+        amount_content.SetBackgroundColour(ColorTheme.CARD_BG)
+        amount_sizer = wx.FlexGridSizer(2, 2, 10, 10)
         
-        min_label = wx.StaticText(card, label="최소 금액")
-        min_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        self.txtMinAmount = wx.TextCtrl(card)
+        amount_sizer.Add(wx.StaticText(amount_content, label="최소 금액:"), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.min_amount = wx.TextCtrl(amount_content)
+        amount_sizer.Add(self.min_amount, 1, wx.EXPAND)
         
-        max_label = wx.StaticText(card, label="최대 금액")
-        max_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        self.txtMaxAmount = wx.TextCtrl(card)
+        amount_sizer.Add(wx.StaticText(amount_content, label="최대 금액:"), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.max_amount = wx.TextCtrl(amount_content)
+        amount_sizer.Add(self.max_amount, 1, wx.EXPAND)
         
-        amount_sizer.Add(min_label, 0, wx.ALIGN_CENTER_VERTICAL)
-        amount_sizer.Add(self.txtMinAmount, 1, wx.EXPAND)
-        amount_sizer.Add(max_label, 0, wx.ALIGN_CENTER_VERTICAL)
-        amount_sizer.Add(self.txtMaxAmount, 1, wx.EXPAND)
-        
-        card_sizer.Add(amount_sizer, 0, wx.EXPAND | wx.ALL, 20)
-        
-        # 구분선
-        line3 = wx.Panel(card, size=(-1, 1))
-        line3.SetBackgroundColour(ColorTheme.BORDER_LIGHT)
-        card_sizer.Add(line3, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 20)
+        amount_content.SetSizer(amount_sizer)
+        amount_card.AddContent(amount_content)
+        sizer.Add(amount_card, 0, wx.EXPAND | wx.ALL, 10)
         
         # 키워드
-        keyword_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        keyword_label = wx.StaticText(card, label="키워드")
-        keyword_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        self.txtKeyword = wx.TextCtrl(card, size=(300, -1))
+        keyword_card = CardPanel(panel, "키워드 검색")
+        keyword_content = wx.Panel(keyword_card)
+        keyword_content.SetBackgroundColour(ColorTheme.CARD_BG)
+        keyword_sizer = wx.BoxSizer(wx.VERTICAL)
         
-        keyword_sizer.Add(keyword_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 20)
-        keyword_sizer.Add(self.txtKeyword, 1, wx.EXPAND)
+        self.keyword = wx.TextCtrl(keyword_content)
+        keyword_sizer.Add(self.keyword, 0, wx.EXPAND)
         
-        card_sizer.Add(keyword_sizer, 0, wx.EXPAND | wx.ALL, 20)
-        
-        card.main_sizer.Add(card_sizer, 1, wx.EXPAND)
-        sizer.Add(card, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 25)
+        keyword_content.SetSizer(keyword_sizer)
+        keyword_card.AddContent(keyword_content)
+        sizer.Add(keyword_card, 0, wx.EXPAND | wx.ALL, 10)
         
         # 버튼
-        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.AddStretchSpacer()
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.AddStretchSpacer()
         
-        self.btnSearch = ModernButton(panel, "검색", size=(120, 40), primary=True)
-        self.btnCancel = ModernButton(panel, "취소", size=(120, 40))
+        btn_cancel = wx.Button(panel, wx.ID_CANCEL, "취소", size=(100, 36))
+        btn_ok = wx.Button(panel, wx.ID_OK, "검색", size=(100, 36))
+        btn_ok.SetBackgroundColour(ColorTheme.ACCENT)
+        btn_ok.SetForegroundColour(wx.WHITE)
         
-        btnSizer.Add(self.btnSearch, 0, wx.RIGHT, 10)
-        btnSizer.Add(self.btnCancel, 0)
+        btn_sizer.Add(btn_cancel, 0, wx.ALL, 5)
+        btn_sizer.Add(btn_ok, 0, wx.ALL, 5)
         
-        sizer.Add(btnSizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 25)
+        sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 10)
         
         panel.SetSizer(sizer)
         
-        # 이벤트 바인딩
-        self.btnSearch.Bind(wx.EVT_BUTTON, self.OnSearch)
-        self.btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
-    
-    def OnSearch(self, event):
-        self.EndModal(wx.ID_OK)
-    
-    def OnCancel(self, event):
-        self.EndModal(wx.ID_CANCEL)
+        # 날짜 초기화
+        start = wx.DateTime.Today()
+        start.SetDay(1)
+        self.start_date.SetValue(start)
     
     def GetSearchCriteria(self):
-        start = self.startDate.GetValue()
-        end = self.endDate.GetValue()
+        start = self.start_date.GetValue()
+        end = self.end_date.GetValue()
         
         return {
             'start_date': start.FormatISODate(),
             'end_date': end.FormatISODate(),
-            'include_income': self.chkIncome.GetValue(),
-            'include_expense': self.chkExpense.GetValue(),
-            'min_amount': self.txtMinAmount.GetValue(),
-            'max_amount': self.txtMaxAmount.GetValue(),
-            'keyword': self.txtKeyword.GetValue()
+            'include_income': self.chk_income.GetValue(),
+            'include_expense': self.chk_expense.GetValue(),
+            'min_amount': self.min_amount.GetValue(),
+            'max_amount': self.max_amount.GetValue(),
+            'keyword': self.keyword.GetValue()
         }
 
 
 ###########################################################################
-## 통계 다이얼로그 (macOS 스타일)
+## 통계 다이얼로그
 ###########################################################################
 class StatisticsDialog(wx.Dialog):
     def __init__(self, parent, data):
-        super().__init__(parent, title="통계 분석", size=(750, 600),
-                        style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
-        
+        super().__init__(parent, title="통계 분석", size=(700, 600))
         self.SetBackgroundColour(ColorTheme.BG_PRIMARY)
         
         panel = wx.Panel(self)
         panel.SetBackgroundColour(ColorTheme.BG_PRIMARY)
-        
         sizer = wx.BoxSizer(wx.VERTICAL)
         
-        # 헤더
-        header = wx.StaticText(panel, label="📊 통계 분석")
-        font = header.GetFont()
-        font.SetPointSize(20)
-        font.SetWeight(wx.FONTWEIGHT_SEMIBOLD)
-        header.SetFont(font)
-        header.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        sizer.Add(header, 0, wx.ALL, 25)
-        
-        # 통계 정보 계산
-        total_income = 0
-        total_expense = 0
-        income_count = 0
-        expense_count = 0
+        # 월별 통계
+        monthly_data = defaultdict(lambda: {'income': 0, 'expense': 0})
         
         for row in data:
+            month = row[1][:7]  # YYYY-MM
             if row[2] == '수입':
-                total_income += float(row[4]) if row[4] else 0
-                income_count += 1
+                monthly_data[month]['income'] += float(row[4]) if row[4] else 0
             else:
-                total_expense += float(row[5]) if row[5] else 0
-                expense_count += 1
+                monthly_data[month]['expense'] += float(row[5]) if row[5] else 0
         
-        balance = total_income - total_expense
+        # 리스트 컨트롤
+        list_card = CardPanel(panel, "월별 수입/지출 통계")
+        list_ctrl = wx.ListCtrl(list_card, style=wx.LC_REPORT | wx.BORDER_SIMPLE)
+        list_ctrl.SetBackgroundColour(wx.WHITE)
         
-        # 통계 카드들
-        stats_grid = wx.GridSizer(2, 2, 20, 20)
+        list_ctrl.InsertColumn(0, "월", width=120)
+        list_ctrl.InsertColumn(1, "수입", width=150)
+        list_ctrl.InsertColumn(2, "지출", width=150)
+        list_ctrl.InsertColumn(3, "수지", width=150)
         
-        # 총 수입 카드
-        income_card = self.CreateStatCard(panel, "총 수입", f"{total_income:,.0f}원", 
-                                         f"거래 {income_count}건", ColorTheme.INCOME_COLOR)
-        stats_grid.Add(income_card, 1, wx.EXPAND)
-        
-        # 총 지출 카드
-        expense_card = self.CreateStatCard(panel, "총 지출", f"{total_expense:,.0f}원",
-                                          f"거래 {expense_count}건", ColorTheme.EXPENSE_COLOR)
-        stats_grid.Add(expense_card, 1, wx.EXPAND)
-        
-        # 잔액 카드
-        balance_color = ColorTheme.INCOME_COLOR if balance >= 0 else ColorTheme.EXPENSE_COLOR
-        balance_card = self.CreateStatCard(panel, "잔액", f"{balance:,.0f}원",
-                                          "수입 - 지출", balance_color)
-        stats_grid.Add(balance_card, 1, wx.EXPAND)
-        
-        # 평균 지출 카드
-        avg_expense = total_expense / expense_count if expense_count > 0 else 0
-        avg_card = self.CreateStatCard(panel, "평균 지출", f"{avg_expense:,.0f}원",
-                                      "거래당 평균", ColorTheme.INFO)
-        stats_grid.Add(avg_card, 1, wx.EXPAND)
-        
-        sizer.Add(stats_grid, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 25)
-        
-        # 카테고리별 분석
-        category_card = CardPanel(panel, "카테고리별 지출", show_shadow=False)
-        category_sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        # 카테고리별 집계
-        category_data = defaultdict(float)
-        for row in data:
-            if row[2] == '지출':
-                category = row[3].split('.')[0] if '.' in row[3] else row[3]
-                amount = float(row[5]) if row[5] else 0
-                category_data[category] += amount
-        
-        # 상위 5개 카테고리
-        sorted_categories = sorted(category_data.items(), key=lambda x: x[1], reverse=True)[:5]
-        
-        for category, amount in sorted_categories:
-            percentage = (amount / total_expense * 100) if total_expense > 0 else 0
+        for month in sorted(monthly_data.keys(), reverse=True):
+            income = monthly_data[month]['income']
+            expense = monthly_data[month]['expense']
+            balance = income - expense
             
-            item_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            idx = list_ctrl.InsertItem(list_ctrl.GetItemCount(), month)
+            list_ctrl.SetItem(idx, 1, f"{income:,.0f}원")
+            list_ctrl.SetItem(idx, 2, f"{expense:,.0f}원")
             
-            cat_label = wx.StaticText(category_card, label=category)
-            cat_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
+            balance_text = f"{balance:,.0f}원"
+            list_ctrl.SetItem(idx, 3, balance_text)
             
-            amount_label = wx.StaticText(category_card, label=f"{amount:,.0f}원 ({percentage:.1f}%)")
-            amount_label.SetForegroundColour(ColorTheme.TEXT_SECONDARY)
-            
-            item_sizer.Add(cat_label, 1)
-            item_sizer.Add(amount_label, 0)
-            
-            category_sizer.Add(item_sizer, 0, wx.EXPAND | wx.ALL, 15)
-            
-            # 진행바
-            progress = wx.Gauge(category_card, range=100, style=wx.GA_HORIZONTAL | wx.GA_SMOOTH)
-            progress.SetValue(int(percentage))
-            category_sizer.Add(progress, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 15)
+            if balance >= 0:
+                list_ctrl.SetItemTextColour(idx, ColorTheme.INCOME_COLOR)
+            else:
+                list_ctrl.SetItemTextColour(idx, ColorTheme.EXPENSE_COLOR)
         
-        category_card.main_sizer.Add(category_sizer, 1, wx.EXPAND)
-        sizer.Add(category_card, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 25)
+        list_card.AddContent(list_ctrl)
+        sizer.Add(list_card, 1, wx.EXPAND | wx.ALL, 10)
         
         # 닫기 버튼
-        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.AddStretchSpacer()
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.AddStretchSpacer()
         
-        btn_close = ModernButton(panel, "닫기", size=(120, 40), primary=True)
-        btn_close.Bind(wx.EVT_BUTTON, lambda e: self.EndModal(wx.ID_OK))
-        btnSizer.Add(btn_close, 0)
+        btn_close = wx.Button(panel, wx.ID_CLOSE, "닫기", size=(100, 36))
+        btn_sizer.Add(btn_close, 0, wx.ALL, 10)
         
-        sizer.Add(btnSizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 25)
+        sizer.Add(btn_sizer, 0, wx.EXPAND)
         
         panel.SetSizer(sizer)
+        
+        self.Bind(wx.EVT_BUTTON, self.OnClose, btn_close)
     
-    def CreateStatCard(self, parent, title, value, subtitle, color):
-        card = CardPanel(parent, show_shadow=False)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        title_label = wx.StaticText(card, label=title)
-        title_label.SetForegroundColour(ColorTheme.TEXT_SECONDARY)
-        font = title_label.GetFont()
-        font.SetPointSize(11)
-        title_label.SetFont(font)
-        sizer.Add(title_label, 0, wx.ALL, 15)
-        
-        value_label = wx.StaticText(card, label=value)
-        value_label.SetForegroundColour(color)
-        font = value_label.GetFont()
-        font.SetPointSize(24)
-        font.SetWeight(wx.FONTWEIGHT_BOLD)
-        value_label.SetFont(font)
-        sizer.Add(value_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 15)
-        
-        subtitle_label = wx.StaticText(card, label=subtitle)
-        subtitle_label.SetForegroundColour(ColorTheme.TEXT_TERTIARY)
-        font = subtitle_label.GetFont()
-        font.SetPointSize(10)
-        subtitle_label.SetFont(font)
-        sizer.Add(subtitle_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 15)
-        
-        card.main_sizer.Add(sizer, 1, wx.EXPAND)
-        return card
+    def OnClose(self, event):
+        self.Close()
 
 
 ###########################################################################
-## 예산 관리 다이얼로그 (macOS 스타일)
+## 예산 다이얼로그
 ###########################################################################
 class BudgetDialog(wx.Dialog):
     def __init__(self, parent):
-        super().__init__(parent, title="예산 관리", size=(550, 400),
-                        style=wx.DEFAULT_DIALOG_STYLE)
-        
+        super().__init__(parent, title="예산 관리", size=(500, 400))
         self.SetBackgroundColour(ColorTheme.BG_PRIMARY)
         
         panel = wx.Panel(self)
         panel.SetBackgroundColour(ColorTheme.BG_PRIMARY)
-        
         sizer = wx.BoxSizer(wx.VERTICAL)
         
-        # 헤더
-        header = wx.StaticText(panel, label="💰 예산 관리")
-        font = header.GetFont()
-        font.SetPointSize(20)
-        font.SetWeight(wx.FONTWEIGHT_SEMIBOLD)
-        header.SetFont(font)
-        header.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        sizer.Add(header, 0, wx.ALL, 25)
+        # 안내 메시지
+        info_card = CardPanel(panel, "예산 설정")
+        info_text = wx.StaticText(info_card, label="월별 예산을 설정하고 지출을 관리하세요.")
+        info_text.SetForegroundColour(ColorTheme.TEXT_SECONDARY)
+        info_card.AddContent(info_text)
+        sizer.Add(info_card, 0, wx.EXPAND | wx.ALL, 10)
         
-        # 예산 설정 카드
-        card = CardPanel(panel, show_shadow=False)
-        card_sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        # 월별 예산
+        # 예산 입력
+        budget_card = CardPanel(panel, "월 예산")
+        budget_content = wx.Panel(budget_card)
+        budget_content.SetBackgroundColour(ColorTheme.CARD_BG)
         budget_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        budget_label = wx.StaticText(card, label="월 예산")
-        budget_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        font = budget_label.GetFont()
-        font.SetPointSize(12)
-        budget_label.SetFont(font)
         
-        self.txtBudget = wx.TextCtrl(card, size=(250, 36))
-        won_label = wx.StaticText(card, label="원")
-        won_label.SetForegroundColour(ColorTheme.TEXT_SECONDARY)
+        self.budget_input = wx.TextCtrl(budget_content, size=(200, -1))
+        budget_sizer.Add(self.budget_input, 1, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
+        budget_sizer.Add(wx.StaticText(budget_content, label="원"), 0, wx.ALIGN_CENTER_VERTICAL)
         
-        budget_sizer.Add(budget_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 20)
-        budget_sizer.Add(self.txtBudget, 1, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 10)
-        budget_sizer.Add(won_label, 0, wx.ALIGN_CENTER_VERTICAL)
-        
-        card_sizer.Add(budget_sizer, 0, wx.ALL, 20)
-        
-        # 구분선
-        line = wx.Panel(card, size=(-1, 1))
-        line.SetBackgroundColour(ColorTheme.BORDER_LIGHT)
-        card_sizer.Add(line, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 20)
-        
-        # 알림 설정
-        alert_sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        alert_label = wx.StaticText(card, label="알림 설정")
-        alert_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        font = alert_label.GetFont()
-        font.SetPointSize(12)
-        alert_label.SetFont(font)
-        alert_sizer.Add(alert_label, 0, wx.BOTTOM, 15)
-        
-        self.chk80 = wx.CheckBox(card, label="예산의 80% 도달 시 알림")
-        self.chk100 = wx.CheckBox(card, label="예산 초과 시 알림")
-        self.chkDaily = wx.CheckBox(card, label="일일 지출 요약 알림")
-        
-        alert_sizer.Add(self.chk80, 0, wx.BOTTOM, 10)
-        alert_sizer.Add(self.chk100, 0, wx.BOTTOM, 10)
-        alert_sizer.Add(self.chkDaily, 0)
-        
-        card_sizer.Add(alert_sizer, 0, wx.ALL, 20)
-        
-        card.main_sizer.Add(card_sizer, 1, wx.EXPAND)
-        sizer.Add(card, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 25)
+        budget_content.SetSizer(budget_sizer)
+        budget_card.AddContent(budget_content)
+        sizer.Add(budget_card, 0, wx.EXPAND | wx.ALL, 10)
         
         # 버튼
-        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.AddStretchSpacer()
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.AddStretchSpacer()
         
-        btn_save = ModernButton(panel, "저장", size=(120, 40), primary=True)
-        btn_cancel = ModernButton(panel, "취소", size=(120, 40))
+        btn_cancel = wx.Button(panel, wx.ID_CANCEL, "취소", size=(100, 36))
+        btn_save = wx.Button(panel, wx.ID_OK, "저장", size=(100, 36))
+        btn_save.SetBackgroundColour(ColorTheme.ACCENT)
+        btn_save.SetForegroundColour(wx.WHITE)
         
-        btn_save.Bind(wx.EVT_BUTTON, self.OnSave)
-        btn_cancel.Bind(wx.EVT_BUTTON, lambda e: self.EndModal(wx.ID_CANCEL))
+        btn_sizer.Add(btn_cancel, 0, wx.ALL, 5)
+        btn_sizer.Add(btn_save, 0, wx.ALL, 5)
         
-        btnSizer.Add(btn_save, 0, wx.RIGHT, 10)
-        btnSizer.Add(btn_cancel, 0)
-        
-        sizer.Add(btnSizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 25)
+        sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 10)
         
         panel.SetSizer(sizer)
-        
-        self.LoadBudget()
-    
-    def LoadBudget(self):
-        try:
-            with open('budget.txt', 'r', encoding='utf-8') as f:
-                data = f.read().split(',')
-                if len(data) >= 4:
-                    self.txtBudget.SetValue(data[0])
-                    self.chk80.SetValue(data[1] == '1')
-                    self.chk100.SetValue(data[2] == '1')
-                    self.chkDaily.SetValue(data[3] == '1')
-        except FileNotFoundError:
-            pass
-    
-    def OnSave(self, event):
-        budget = self.txtBudget.GetValue()
-        if not budget:
-            wx.MessageBox("예산을 입력하세요.", "알림", wx.OK | wx.ICON_WARNING)
-            return
-        
-        try:
-            float(budget.replace(',', ''))
-        except ValueError:
-            wx.MessageBox("올바른 금액을 입력하세요.", "알림", wx.OK | wx.ICON_WARNING)
-            return
-        
-        try:
-            with open('budget.txt', 'w', encoding='utf-8') as f:
-                data = [
-                    budget,
-                    '1' if self.chk80.GetValue() else '0',
-                    '1' if self.chk100.GetValue() else '0',
-                    '1' if self.chkDaily.GetValue() else '0'
-                ]
-                f.write(','.join(data))
-            
-            wx.MessageBox("예산이 저장되었습니다.", "저장 완료", wx.OK | wx.ICON_INFORMATION)
-            self.EndModal(wx.ID_OK)
-        except Exception as e:
-            wx.MessageBox(f"저장 실패: {str(e)}", "오류", wx.OK | wx.ICON_ERROR)
 
 
 ###########################################################################
-## 메인 프레임 (macOS 스타일)
+## 즐겨찾기 다이얼로그
+###########################################################################
+class FavoritesDialog(wx.Dialog):
+    def __init__(self, parent):
+        super().__init__(parent, title="즐겨찾기", size=(600, 500))
+        self.SetBackgroundColour(ColorTheme.BG_PRIMARY)
+        
+        self.favorites = [
+            ('지출', '식비', '15000', '점심'),
+            ('지출', '교통비', '5000', '버스'),
+            ('수입', '급여', '3000000', '월급'),
+        ]
+        
+        panel = wx.Panel(self)
+        panel.SetBackgroundColour(ColorTheme.BG_PRIMARY)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # 리스트
+        list_card = CardPanel(panel, "즐겨찾기 목록")
+        self.list = wx.ListCtrl(list_card, style=wx.LC_REPORT | wx.BORDER_SIMPLE)
+        self.list.SetBackgroundColour(wx.WHITE)
+        
+        self.list.InsertColumn(0, "구분", width=80)
+        self.list.InsertColumn(1, "항목", width=150)
+        self.list.InsertColumn(2, "금액", width=120)
+        self.list.InsertColumn(3, "비고", width=200)
+        
+        for fav in self.favorites:
+            idx = self.list.InsertItem(self.list.GetItemCount(), fav[0])
+            self.list.SetItem(idx, 1, fav[1])
+            self.list.SetItem(idx, 2, fav[2])
+            self.list.SetItem(idx, 3, fav[3])
+        
+        list_card.AddContent(self.list)
+        sizer.Add(list_card, 1, wx.EXPAND | wx.ALL, 10)
+        
+        # 버튼
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.AddStretchSpacer()
+        
+        btn_cancel = wx.Button(panel, wx.ID_CANCEL, "취소", size=(100, 36))
+        btn_apply = wx.Button(panel, wx.ID_OK, "적용", size=(100, 36))
+        btn_apply.SetBackgroundColour(ColorTheme.ACCENT)
+        btn_apply.SetForegroundColour(wx.WHITE)
+        
+        btn_sizer.Add(btn_cancel, 0, wx.ALL, 5)
+        btn_sizer.Add(btn_apply, 0, wx.ALL, 5)
+        
+        sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 10)
+        
+        panel.SetSizer(sizer)
+    
+    def GetSelectedFavorite(self):
+        idx = self.list.GetFirstSelected()
+        if idx == -1:
+            return None
+        
+        return (
+            self.list.GetItemText(idx, 0),
+            self.list.GetItemText(idx, 1),
+            self.list.GetItemText(idx, 2),
+            self.list.GetItemText(idx, 3)
+        )
+
+
+###########################################################################
+## 메인 프레임
 ###########################################################################
 class MyFrame(wx.Frame):
     def __init__(self, parent):
-        super().__init__(parent, title="💰 스마트 가계부", size=(1280, 820))
-        
+        super().__init__(parent, title="스마트 가계부 v6.0", size=(1200, 800))
         self.SetBackgroundColour(ColorTheme.BG_PRIMARY)
         
         # 메뉴바
-        self.CreateMenuBar()
+        self.InitMenuBar()
         
         # 메인 패널
         main_panel = wx.Panel(self)
         main_panel.SetBackgroundColour(ColorTheme.BG_PRIMARY)
-        
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         
-        # 상단 헤더
-        header_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        # 상단 정보 패널
+        info_panel = self.CreateInfoPanel(main_panel)
+        main_sizer.Add(info_panel, 0, wx.EXPAND | wx.ALL, 10)
         
-        title = wx.StaticText(main_panel, label="스마트 가계부")
-        font = title.GetFont()
-        font.SetPointSize(24)
-        font.SetWeight(wx.FONTWEIGHT_BOLD)
-        title.SetFont(font)
-        title.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        
-        header_sizer.Add(title, 0, wx.ALIGN_CENTER_VERTICAL)
-        header_sizer.AddStretchSpacer()
-        
-        # 상단 버튼들
-        btn_stats = ModernButton(main_panel, "📊 통계", size=(100, 36))
-        btn_budget = ModernButton(main_panel, "💰 예산", size=(100, 36))
-        btn_export = ModernButton(main_panel, "📤 내보내기", size=(120, 36))
-        
-        btn_stats.Bind(wx.EVT_BUTTON, self.OnStatistics)
-        btn_budget.Bind(wx.EVT_BUTTON, self.OnBudget)
-        btn_export.Bind(wx.EVT_BUTTON, self.OnExport)
-        
-        header_sizer.Add(btn_stats, 0, wx.RIGHT, 10)
-        header_sizer.Add(btn_budget, 0, wx.RIGHT, 10)
-        header_sizer.Add(btn_export, 0)
-        
-        main_sizer.Add(header_sizer, 0, wx.EXPAND | wx.ALL, 25)
-        
-        # 컨텐츠 영역 (2열 레이아웃)
+        # 중간 컨텐츠
         content_sizer = wx.BoxSizer(wx.HORIZONTAL)
         
-        # 왼쪽: 입력 영역
+        # 좌측: 입력 패널
         left_panel = self.CreateInputPanel(main_panel)
-        content_sizer.Add(left_panel, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 15)
+        content_sizer.Add(left_panel, 1, wx.EXPAND | wx.ALL, 5)
         
-        # 오른쪽: 목록 영역
-        right_panel = self.CreateListPanel(main_panel)
-        content_sizer.Add(right_panel, 2, wx.EXPAND | wx.LEFT | wx.RIGHT, 15)
+        # 우측: 그래프 패널
+        right_panel = self.CreateGraphPanel(main_panel)
+        content_sizer.Add(right_panel, 1, wx.EXPAND | wx.ALL, 5)
         
         main_sizer.Add(content_sizer, 1, wx.EXPAND)
         
-        # 하단 그래프 영역
-        graph_panel = self.CreateGraphPanel(main_panel)
-        main_sizer.Add(graph_panel, 0, wx.EXPAND | wx.ALL, 25)
+        # 하단: 리스트 패널
+        list_panel = self.CreateListPanel(main_panel)
+        main_sizer.Add(list_panel, 2, wx.EXPAND | wx.ALL, 10)
         
         main_panel.SetSizer(main_sizer)
         
+        self.Centre()
+        
         # 초기 데이터 로드
         self.OnSelectAll(None)
-        
-        self.Centre()
     
-    def CreateMenuBar(self):
+    def InitMenuBar(self):
         menubar = wx.MenuBar()
         
         # 파일 메뉴
         file_menu = wx.Menu()
-        file_menu.Append(wx.ID_ANY, "📥 가져오기\tCtrl+I")
-        file_menu.Append(wx.ID_ANY, "📤 내보내기\tCtrl+E")
+        file_menu.Append(wx.ID_ANY, "내보내기\tCtrl+E")
+        file_menu.Append(wx.ID_ANY, "가져오기\tCtrl+I")
         file_menu.AppendSeparator()
         file_menu.Append(wx.ID_EXIT, "종료\tCtrl+Q")
+        menubar.Append(file_menu, "파일")
         
         # 편집 메뉴
         edit_menu = wx.Menu()
-        edit_menu.Append(wx.ID_ANY, "✏️ 수정\tCtrl+M")
-        edit_menu.Append(wx.ID_ANY, "🗑️ 삭제\tCtrl+D")
-        edit_menu.AppendSeparator()
-        edit_menu.Append(wx.ID_ANY, "🔍 검색\tCtrl+F")
+        edit_menu.Append(wx.ID_ANY, "검색\tCtrl+F")
+        edit_menu.Append(wx.ID_ANY, "통계\tCtrl+S")
+        menubar.Append(edit_menu, "편집")
         
         # 도구 메뉴
         tools_menu = wx.Menu()
-        tools_menu.Append(wx.ID_ANY, "📊 통계\tCtrl+T")
-        tools_menu.Append(wx.ID_ANY, "💰 예산\tCtrl+B")
-        tools_menu.Append(wx.ID_ANY, "⭐ 즐겨찾기\tCtrl+K")
-        tools_menu.Append(wx.ID_ANY, "📈 그래프\tCtrl+G")
-        
-        menubar.Append(file_menu, "파일")
-        menubar.Append(edit_menu, "편집")
+        tools_menu.Append(wx.ID_ANY, "예산 관리")
+        tools_menu.Append(wx.ID_ANY, "즐겨찾기")
         menubar.Append(tools_menu, "도구")
         
         self.SetMenuBar(menubar)
         
         # 이벤트 바인딩
-        self.Bind(wx.EVT_MENU, self.OnImport, id=file_menu.FindItem("📥 가져오기\tCtrl+I"))
-        self.Bind(wx.EVT_MENU, self.OnExport, id=file_menu.FindItem("📤 내보내기\tCtrl+E"))
+        self.Bind(wx.EVT_MENU, self.OnExport, id=file_menu.FindItem("내보내기\tCtrl+E"))
+        self.Bind(wx.EVT_MENU, self.OnImport, id=file_menu.FindItem("가져오기\tCtrl+I"))
         self.Bind(wx.EVT_MENU, self.OnExit, id=wx.ID_EXIT)
-        self.Bind(wx.EVT_MENU, self.OnUpdate, id=edit_menu.FindItem("✏️ 수정\tCtrl+M"))
-        self.Bind(wx.EVT_MENU, self.OnDelete, id=edit_menu.FindItem("🗑️ 삭제\tCtrl+D"))
-        self.Bind(wx.EVT_MENU, self.OnSearch, id=edit_menu.FindItem("🔍 검색\tCtrl+F"))
-        self.Bind(wx.EVT_MENU, self.OnStatistics, id=tools_menu.FindItem("📊 통계\tCtrl+T"))
-        self.Bind(wx.EVT_MENU, self.OnBudget, id=tools_menu.FindItem("💰 예산\tCtrl+B"))
-        self.Bind(wx.EVT_MENU, self.OnFavorites, id=tools_menu.FindItem("⭐ 즐겨찾기\tCtrl+K"))
-        self.Bind(wx.EVT_MENU, self.OnMakeGraph, id=tools_menu.FindItem("📈 그래프\tCtrl+G"))
+        self.Bind(wx.EVT_MENU, self.OnSearch, id=edit_menu.FindItem("검색\tCtrl+F"))
+        self.Bind(wx.EVT_MENU, self.OnStatistics, id=edit_menu.FindItem("통계\tCtrl+S"))
+        self.Bind(wx.EVT_MENU, self.OnBudget, id=tools_menu.FindItem("예산 관리"))
+        self.Bind(wx.EVT_MENU, self.OnFavorites, id=tools_menu.FindItem("즐겨찾기"))
+    
+    def CreateInfoPanel(self, parent):
+        panel = CardPanel(parent, "월간 요약")
+        
+        content = wx.Panel(panel)
+        content.SetBackgroundColour(ColorTheme.CARD_BG)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        # 월 선택
+        month_box = wx.BoxSizer(wx.VERTICAL)
+        month_label = wx.StaticText(content, label="조회 월")
+        month_label.SetForegroundColour(ColorTheme.TEXT_SECONDARY)
+        month_box.Add(month_label, 0, wx.BOTTOM, 5)
+        
+        self.comboMonth = wx.ComboBox(content, choices=HL_CRUD.selectMonthList(), 
+                                      style=wx.CB_READONLY, size=(150, -1))
+        if self.comboMonth.GetCount() > 0:
+            self.comboMonth.SetSelection(0)
+        month_box.Add(self.comboMonth, 0, wx.EXPAND)
+        
+        sizer.Add(month_box, 0, wx.ALL, 10)
+        sizer.AddSpacer(20)
+        
+        # 수입 요약
+        income_box = wx.BoxSizer(wx.VERTICAL)
+        income_label = wx.StaticText(content, label="총 수입")
+        income_label.SetForegroundColour(ColorTheme.TEXT_SECONDARY)
+        income_box.Add(income_label, 0, wx.BOTTOM, 5)
+        
+        self.lblIncome = wx.StaticText(content, label="0원")
+        font = self.lblIncome.GetFont()
+        font.SetPointSize(18)
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
+        self.lblIncome.SetFont(font)
+        self.lblIncome.SetForegroundColour(ColorTheme.INCOME_COLOR)
+        income_box.Add(self.lblIncome)
+        
+        sizer.Add(income_box, 0, wx.ALL, 10)
+        sizer.AddSpacer(20)
+        
+        # 지출 요약
+        expense_box = wx.BoxSizer(wx.VERTICAL)
+        expense_label = wx.StaticText(content, label="총 지출")
+        expense_label.SetForegroundColour(ColorTheme.TEXT_SECONDARY)
+        expense_box.Add(expense_label, 0, wx.BOTTOM, 5)
+        
+        self.lblExpense = wx.StaticText(content, label="0원")
+        font = self.lblExpense.GetFont()
+        font.SetPointSize(18)
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
+        self.lblExpense.SetFont(font)
+        self.lblExpense.SetForegroundColour(ColorTheme.EXPENSE_COLOR)
+        expense_box.Add(self.lblExpense)
+        
+        sizer.Add(expense_box, 0, wx.ALL, 10)
+        sizer.AddSpacer(20)
+        
+        # 수지 요약
+        balance_box = wx.BoxSizer(wx.VERTICAL)
+        balance_label = wx.StaticText(content, label="수지")
+        balance_label.SetForegroundColour(ColorTheme.TEXT_SECONDARY)
+        balance_box.Add(balance_label, 0, wx.BOTTOM, 5)
+        
+        self.lblBalance = wx.StaticText(content, label="0원")
+        font = self.lblBalance.GetFont()
+        font.SetPointSize(18)
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
+        self.lblBalance.SetFont(font)
+        balance_box.Add(self.lblBalance)
+        
+        sizer.Add(balance_box, 0, wx.ALL, 10)
+        
+        content.SetSizer(sizer)
+        panel.AddContent(content)
+        
+        # 이벤트
+        self.comboMonth.Bind(wx.EVT_COMBOBOX, self.OnMonthChanged)
+        
+        return panel
     
     def CreateInputPanel(self, parent):
-        card = CardPanel(parent, "거래 입력", show_shadow=True)
+        panel = CardPanel(parent, "거래 입력")
+        
+        content = wx.Panel(panel)
+        content.SetBackgroundColour(ColorTheme.CARD_BG)
         sizer = wx.BoxSizer(wx.VERTICAL)
         
-        # 날짜 선택
+        # 날짜
         date_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        date_label = wx.StaticText(card, label="날짜")
-        date_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        self.dateCtrl = wx.adv.DatePickerCtrl(card, style=wx.adv.DP_DROPDOWN)
+        date_sizer.Add(wx.StaticText(content, label="날짜:", size=(80, -1)), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.dateCtrl = wx.adv.DatePickerCtrl(content, style=wx.adv.DP_DROPDOWN | wx.adv.DP_SHOWCENTURY)
         self.dateCtrl.SetValue(wx.DateTime.Today())
-        
-        date_sizer.Add(date_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 15)
         date_sizer.Add(self.dateCtrl, 1, wx.EXPAND)
+        sizer.Add(date_sizer, 0, wx.EXPAND | wx.ALL, 5)
         
-        sizer.Add(date_sizer, 0, wx.EXPAND | wx.ALL, 20)
-        
-        # 탭 (수입/지출)
-        self.notebook = wx.Notebook(card)
+        # 노트북 (수입/지출 탭)
+        self.notebook = wx.Notebook(content)
         
         # 수입 탭
-        income_panel = wx.Panel(self.notebook)
-        income_panel.SetBackgroundColour(ColorTheme.CARD_BG)
-        income_sizer = wx.BoxSizer(wx.VERTICAL)
+        revenue_panel = wx.Panel(self.notebook)
+        revenue_panel.SetBackgroundColour(wx.WHITE)
+        revenue_sizer = wx.BoxSizer(wx.VERTICAL)
         
-        income_category_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        income_cat_label = wx.StaticText(income_panel, label="항목")
-        income_cat_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        self.comboRevenue = wx.ComboBox(income_panel, choices=['급여', '보너스', '부수입', '이자', '기타'])
-        income_category_sizer.Add(income_cat_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 15)
-        income_category_sizer.Add(self.comboRevenue, 1, wx.EXPAND)
-        income_sizer.Add(income_category_sizer, 0, wx.EXPAND | wx.ALL, 15)
+        rev_item_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        rev_item_sizer.Add(wx.StaticText(revenue_panel, label="항목:", size=(80, -1)), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.comboRevenue = wx.ComboBox(revenue_panel, 
+                                        choices=['급여', '보너스', '용돈', '기타수입'],
+                                        style=wx.CB_DROPDOWN)
+        rev_item_sizer.Add(self.comboRevenue, 1, wx.EXPAND)
+        revenue_sizer.Add(rev_item_sizer, 0, wx.EXPAND | wx.ALL, 5)
         
-        income_amount_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        income_amt_label = wx.StaticText(income_panel, label="금액")
-        income_amt_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        self.txtRevenue = wx.TextCtrl(income_panel, size=(200, -1))
-        income_won = wx.StaticText(income_panel, label="원")
-        income_won.SetForegroundColour(ColorTheme.TEXT_SECONDARY)
-        income_amount_sizer.Add(income_amt_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 15)
-        income_amount_sizer.Add(self.txtRevenue, 1, wx.EXPAND | wx.RIGHT, 10)
-        income_amount_sizer.Add(income_won, 0, wx.ALIGN_CENTER_VERTICAL)
-        income_sizer.Add(income_amount_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 15)
+        rev_amount_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        rev_amount_sizer.Add(wx.StaticText(revenue_panel, label="금액:", size=(80, -1)), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.txtRevenue = wx.TextCtrl(revenue_panel)
+        rev_amount_sizer.Add(self.txtRevenue, 1, wx.EXPAND)
+        revenue_sizer.Add(rev_amount_sizer, 0, wx.EXPAND | wx.ALL, 5)
         
-        income_panel.SetSizer(income_sizer)
+        revenue_panel.SetSizer(revenue_sizer)
+        self.notebook.AddPage(revenue_panel, "수입")
         
         # 지출 탭
         expense_panel = wx.Panel(self.notebook)
-        expense_panel.SetBackgroundColour(ColorTheme.CARD_BG)
+        expense_panel.SetBackgroundColour(wx.WHITE)
         expense_sizer = wx.BoxSizer(wx.VERTICAL)
         
-        expense_category_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        expense_cat_label = wx.StaticText(expense_panel, label="항목")
-        expense_cat_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        self.comboExpense = wx.ComboBox(expense_panel, choices=['식비', '교통비', '주거비', '통신비', '의료비', '교육비', '문화생활', '쇼핑', '기타'])
-        expense_category_sizer.Add(expense_cat_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 15)
-        expense_category_sizer.Add(self.comboExpense, 1, wx.EXPAND)
-        expense_sizer.Add(expense_category_sizer, 0, wx.EXPAND | wx.ALL, 15)
+        exp_item_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        exp_item_sizer.Add(wx.StaticText(expense_panel, label="항목:", size=(80, -1)), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.comboExpense = wx.ComboBox(expense_panel,
+                                        choices=['식비', '교통비', '통신비', '주거비', '의류', '문화생활', '기타지출'],
+                                        style=wx.CB_DROPDOWN)
+        exp_item_sizer.Add(self.comboExpense, 1, wx.EXPAND)
+        expense_sizer.Add(exp_item_sizer, 0, wx.EXPAND | wx.ALL, 5)
         
-        expense_amount_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        expense_amt_label = wx.StaticText(expense_panel, label="금액")
-        expense_amt_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        self.txtExpense = wx.TextCtrl(expense_panel, size=(200, -1))
-        expense_won = wx.StaticText(expense_panel, label="원")
-        expense_won.SetForegroundColour(ColorTheme.TEXT_SECONDARY)
-        expense_amount_sizer.Add(expense_amt_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 15)
-        expense_amount_sizer.Add(self.txtExpense, 1, wx.EXPAND | wx.RIGHT, 10)
-        expense_amount_sizer.Add(expense_won, 0, wx.ALIGN_CENTER_VERTICAL)
-        expense_sizer.Add(expense_amount_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 15)
+        exp_amount_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        exp_amount_sizer.Add(wx.StaticText(expense_panel, label="금액:", size=(80, -1)), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.txtExpense = wx.TextCtrl(expense_panel)
+        exp_amount_sizer.Add(self.txtExpense, 1, wx.EXPAND)
+        expense_sizer.Add(exp_amount_sizer, 0, wx.EXPAND | wx.ALL, 5)
         
         expense_panel.SetSizer(expense_sizer)
+        self.notebook.AddPage(expense_panel, "지출")
         
-        self.notebook.AddPage(income_panel, "💰 수입")
-        self.notebook.AddPage(expense_panel, "💸 지출")
-        
-        sizer.Add(self.notebook, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 20)
+        sizer.Add(self.notebook, 0, wx.EXPAND | wx.ALL, 5)
         
         # 비고
         remark_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        remark_label = wx.StaticText(card, label="비고")
-        remark_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        self.txtRemark = wx.TextCtrl(card, style=wx.TE_MULTILINE, size=(-1, 80))
-        
-        remark_sizer.Add(remark_label, 0, wx.ALIGN_TOP | wx.RIGHT, 15)
+        remark_sizer.Add(wx.StaticText(content, label="비고:", size=(80, -1)), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.txtRemark = wx.TextCtrl(content, style=wx.TE_MULTILINE, size=(-1, 60))
         remark_sizer.Add(self.txtRemark, 1, wx.EXPAND)
-        
-        sizer.Add(remark_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 20)
-        
-        # 버튼들
-        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        
-        btn_favorite = ModernButton(card, "⭐ 즐겨찾기", size=(120, 40))
-        btn_insert = ModernButton(card, "추가", size=(100, 40), primary=True)
-        btn_clear = ModernButton(card, "초기화", size=(100, 40))
-        
-        btn_favorite.Bind(wx.EVT_BUTTON, self.OnFavorites)
-        btn_insert.Bind(wx.EVT_BUTTON, self.OnInsert)
-        btn_clear.Bind(wx.EVT_BUTTON, lambda e: self.ClearInputs())
-        
-        btn_sizer.Add(btn_favorite, 0, wx.RIGHT, 10)
-        btn_sizer.AddStretchSpacer()
-        btn_sizer.Add(btn_insert, 0, wx.RIGHT, 10)
-        btn_sizer.Add(btn_clear, 0)
-        
-        sizer.Add(btn_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 20)
-        
-        card.main_sizer.Add(sizer, 1, wx.EXPAND)
-        return card
-    
-    def CreateListPanel(self, parent):
-        card = CardPanel(parent, "거래 내역", show_shadow=True)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        # 필터 및 검색
-        filter_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        
-        month_label = wx.StaticText(card, label="월 선택")
-        month_label.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        
-        self.comboMonth = wx.ComboBox(card, choices=HL_CRUD.selectMonthList(), style=wx.CB_READONLY)
-        if self.comboMonth.GetCount() > 0:
-            self.comboMonth.SetSelection(0)
-        
-        btn_search = ModernButton(card, "🔍 검색", size=(100, 32))
-        btn_refresh = ModernButton(card, "🔄 새로고침", size=(120, 32))
-        
-        btn_search.Bind(wx.EVT_BUTTON, self.OnSearch)
-        btn_refresh.Bind(wx.EVT_BUTTON, self.OnSelectAll)
-        self.comboMonth.Bind(wx.EVT_COMBOBOX, self.OnMonthSelect)
-        
-        filter_sizer.Add(month_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 10)
-        filter_sizer.Add(self.comboMonth, 0, wx.RIGHT, 15)
-        filter_sizer.AddStretchSpacer()
-        filter_sizer.Add(btn_search, 0, wx.RIGHT, 10)
-        filter_sizer.Add(btn_refresh, 0)
-        
-        sizer.Add(filter_sizer, 0, wx.EXPAND | wx.ALL, 20)
-        
-        # 리스트
-        self.list = wx.ListCtrl(card, style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_NONE)
-        self.list.InsertColumn(0, "번호", width=60)
-        self.list.InsertColumn(1, "날짜", width=100)
-        self.list.InsertColumn(2, "구분", width=80)
-        self.list.InsertColumn(3, "내역", width=150)
-        self.list.InsertColumn(4, "수입", width=120)
-        self.list.InsertColumn(5, "지출", width=120)
-        self.list.InsertColumn(6, "비고", width=180)
-        
-        self.list.SetBackgroundColour(ColorTheme.CARD_BG)
-        self.list.SetForegroundColour(ColorTheme.TEXT_PRIMARY)
-        
-        sizer.Add(self.list, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 20)
+        sizer.Add(remark_sizer, 1, wx.EXPAND | wx.ALL, 5)
         
         # 버튼들
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         
-        btn_update = ModernButton(card, "✏️ 수정", size=(100, 36))
-        btn_delete = ModernButton(card, "🗑️ 삭제", size=(100, 36), danger=True)
-        btn_load = ModernButton(card, "불러오기", size=(100, 36))
+        self.btnInsert = wx.Button(content, label="추가", size=(100, 36))
+        self.btnInsert.SetBackgroundColour(ColorTheme.ACCENT)
+        self.btnInsert.SetForegroundColour(wx.WHITE)
+        btn_sizer.Add(self.btnInsert, 0, wx.ALL, 5)
         
-        btn_update.Bind(wx.EVT_BUTTON, self.OnUpdate)
-        btn_delete.Bind(wx.EVT_BUTTON, self.OnDelete)
-        btn_load.Bind(wx.EVT_BUTTON, self.OnLoadToInput)
+        self.btnUpdate = wx.Button(content, label="수정", size=(100, 36))
+        btn_sizer.Add(self.btnUpdate, 0, wx.ALL, 5)
         
-        btn_sizer.AddStretchSpacer()
-        btn_sizer.Add(btn_update, 0, wx.RIGHT, 10)
-        btn_sizer.Add(btn_delete, 0, wx.RIGHT, 10)
-        btn_sizer.Add(btn_load, 0)
+        self.btnDelete = wx.Button(content, label="삭제", size=(100, 36))
+        btn_sizer.Add(self.btnDelete, 0, wx.ALL, 5)
         
-        sizer.Add(btn_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 20)
+        self.btnClear = wx.Button(content, label="초기화", size=(100, 36))
+        btn_sizer.Add(self.btnClear, 0, wx.ALL, 5)
         
-        card.main_sizer.Add(sizer, 1, wx.EXPAND)
-        return card
+        sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+        
+        content.SetSizer(sizer)
+        panel.AddContent(content)
+        
+        # 이벤트 바인딩
+        self.btnInsert.Bind(wx.EVT_BUTTON, self.OnInsert)
+        self.btnUpdate.Bind(wx.EVT_BUTTON, self.OnUpdate)
+        self.btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
+        self.btnClear.Bind(wx.EVT_BUTTON, lambda e: self.ClearInputs())
+        
+        return panel
     
     def CreateGraphPanel(self, parent):
-        card = CardPanel(parent, "지출 분석 그래프", show_shadow=True)
+        panel = CardPanel(parent, "지출 분석")
+        
+        content = wx.Panel(panel)
+        content.SetBackgroundColour(ColorTheme.CARD_BG)
         sizer = wx.BoxSizer(wx.VERTICAL)
         
-        # 그래프
-        self.graphPanel = Barchart(card)
-        self.graphPanel.SetBackgroundColour(ColorTheme.CARD_BG)
-        self.graphPanel.SetMinSize((-1, 250))
+        self.graphPanel = Barchart(content)
+        sizer.Add(self.graphPanel, 1, wx.EXPAND | wx.ALL, 5)
         
-        sizer.Add(self.graphPanel, 1, wx.EXPAND | wx.ALL, 20)
+        btn_graph = wx.Button(content, label="그래프 생성", size=(150, 36))
+        btn_graph.SetBackgroundColour(ColorTheme.ACCENT)
+        btn_graph.SetForegroundColour(wx.WHITE)
+        sizer.Add(btn_graph, 0, wx.ALIGN_CENTER | wx.ALL, 10)
         
-        # 그래프 생성 버튼
-        btn_graph = ModernButton(card, "📊 그래프 생성", size=(140, 40), primary=True)
+        content.SetSizer(sizer)
+        panel.AddContent(content)
+        
         btn_graph.Bind(wx.EVT_BUTTON, self.OnMakeGraph)
         
-        sizer.Add(btn_graph, 0, wx.ALIGN_CENTER | wx.BOTTOM, 20)
+        return panel
+    
+    def CreateListPanel(self, parent):
+        panel = CardPanel(parent, "거래 내역")
         
-        card.main_sizer.Add(sizer, 1, wx.EXPAND)
-        return card
+        content = wx.Panel(panel)
+        content.SetBackgroundColour(ColorTheme.CARD_BG)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # 버튼들
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        btn_all = wx.Button(content, label="전체 조회", size=(100, 32))
+        btn_sizer.Add(btn_all, 0, wx.ALL, 5)
+        
+        btn_month = wx.Button(content, label="월별 조회", size=(100, 32))
+        btn_sizer.Add(btn_month, 0, wx.ALL, 5)
+        
+        btn_load = wx.Button(content, label="불러오기", size=(100, 32))
+        btn_sizer.Add(btn_load, 0, wx.ALL, 5)
+        
+        btn_sizer.AddStretchSpacer()
+        sizer.Add(btn_sizer, 0, wx.EXPAND | wx.BOTTOM, 10)
+        
+        # 리스트
+        self.list = wx.ListCtrl(content, style=wx.LC_REPORT | wx.BORDER_SIMPLE)
+        self.list.SetBackgroundColour(wx.WHITE)
+        
+        self.list.InsertColumn(0, "번호", width=80)
+        self.list.InsertColumn(1, "날짜", width=100)
+        self.list.InsertColumn(2, "구분", width=80)
+        self.list.InsertColumn(3, "항목", width=150)
+        self.list.InsertColumn(4, "수입", width=120)
+        self.list.InsertColumn(5, "지출", width=120)
+        self.list.InsertColumn(6, "비고", width=300)
+        
+        sizer.Add(self.list, 1, wx.EXPAND)
+        
+        content.SetSizer(sizer)
+        panel.AddContent(content)
+        
+        # 이벤트
+        btn_all.Bind(wx.EVT_BUTTON, self.OnSelectAll)
+        btn_month.Bind(wx.EVT_BUTTON, self.OnSelectMonth)
+        btn_load.Bind(wx.EVT_BUTTON, self.OnLoadToInput)
+        
+        return panel
+    
+    def OnMonthChanged(self, event):
+        self.OnSelectMonth(None)
     
     def OnInsert(self, event):
         date_str = self.dateCtrl.GetValue().FormatISODate()
         
-        current_tab = self.notebook.GetSelection()
-        
-        if current_tab == 0:  # 수입
+        if self.notebook.GetSelection() == 0:  # 수입
             section = '수입'
             title = self.comboRevenue.GetValue()
-            amount = self.txtRevenue.GetValue()
-            revenue = amount.replace(',', '') if amount else '0'
+            revenue = self.txtRevenue.GetValue().replace(',', '')
             expense = '0'
         else:  # 지출
             section = '지출'
             title = self.comboExpense.GetValue()
-            amount = self.txtExpense.GetValue()
             revenue = '0'
-            expense = amount.replace(',', '') if amount else '0'
+            expense = self.txtExpense.GetValue().replace(',', '')
         
         remark = self.txtRemark.GetValue()
         
-        # 유효성 검사
         if not title:
-            wx.MessageBox("항목을 선택하세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
+            wx.MessageBox("항목을 입력하세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
             return
         
-        if not amount or amount == '0':
+        if revenue == '0' and expense == '0':
             wx.MessageBox("금액을 입력하세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
             return
         
         try:
-            float(amount.replace(',', ''))
-        except ValueError:
-            wx.MessageBox("올바른 금액을 입력하세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
+            HL_CRUD.insert((date_str, section, title, revenue, expense, remark))
+            wx.MessageBox("추가되었습니다.", "성공", wx.OK | wx.ICON_INFORMATION)
+            self.OnSelectAll(None)
+            self.ClearInputs()
+        except Exception as e:
+            wx.MessageBox(f"추가 실패: {str(e)}", "오류", wx.OK | wx.ICON_ERROR)
+    
+    def OnUpdate(self, event):
+        idx = self.list.GetFirstSelected()
+        if idx == -1:
+            wx.MessageBox("수정할 항목을 선택하세요.", "알림", wx.OK | wx.ICON_WARNING)
             return
         
-        # 데이터 삽입
-        HL_CRUD.insert((date_str, section, title, revenue, expense, remark))
+        key = self.list.GetItemText(idx, 0)
+        date_str = self.dateCtrl.GetValue().FormatISODate()
         
-        wx.MessageBox("거래가 추가되었습니다.", "추가 완료", wx.OK | wx.ICON_INFORMATION)
+        if self.notebook.GetSelection() == 0:
+            section = '수입'
+            title = self.comboRevenue.GetValue()
+            revenue = self.txtRevenue.GetValue().replace(',', '')
+            expense = '0'
+        else:
+            section = '지출'
+            title = self.comboExpense.GetValue()
+            revenue = '0'
+            expense = self.txtExpense.GetValue().replace(',', '')
         
-        self.ClearInputs()
-        self.OnSelectAll(None)
+        remark = self.txtRemark.GetValue()
+        
+        try:
+            HL_CRUD.update((key, date_str, section, title, revenue, expense, remark))
+            wx.MessageBox("수정되었습니다.", "성공", wx.OK | wx.ICON_INFORMATION)
+            self.OnSelectAll(None)
+            self.ClearInputs()
+        except Exception as e:
+            wx.MessageBox(f"수정 실패: {str(e)}", "오류", wx.OK | wx.ICON_ERROR)
+    
+    def OnDelete(self, event):
+        idx = self.list.GetFirstSelected()
+        if idx == -1:
+            wx.MessageBox("삭제할 항목을 선택하세요.", "알림", wx.OK | wx.ICON_WARNING)
+            return
+        
+        if wx.MessageBox("정말 삭제하시겠습니까?", "삭제 확인", wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
+            key = self.list.GetItemText(idx, 0)
+            try:
+                HL_CRUD.delete(key)
+                wx.MessageBox("삭제되었습니다.", "성공", wx.OK | wx.ICON_INFORMATION)
+                self.OnSelectAll(None)
+                self.ClearInputs()
+            except Exception as e:
+                wx.MessageBox(f"삭제 실패: {str(e)}", "오류", wx.OK | wx.ICON_ERROR)
     
     def OnSelectAll(self, event):
         self.list.DeleteAllItems()
@@ -1167,21 +838,30 @@ class MyFrame(wx.Frame):
             self.list.SetItem(idx, 5, f"{float(row[5]):,.0f}" if row[5] else "0")
             self.list.SetItem(idx, 6, row[6])
             
-            # 수입/지출에 따른 색상 (선택적)
+            # 색상
             if row[2] == '수입':
                 self.list.SetItemTextColour(idx, ColorTheme.INCOME_COLOR)
             else:
                 self.list.SetItemTextColour(idx, ColorTheme.EXPENSE_COLOR)
     
-    def OnMonthSelect(self, event):
-        selected_month = self.comboMonth.GetValue()
-        if not selected_month:
+    def OnSelectMonth(self, event):
+        month = self.comboMonth.GetValue()
+        if not month:
+            wx.MessageBox("월을 선택하세요.", "알림", wx.OK | wx.ICON_WARNING)
             return
         
         self.list.DeleteAllItems()
-        rows = HL_CRUD.selectMonthlySum(selected_month)
+        rows = HL_CRUD.selectMonthlySum(month)
+        
+        total_income = 0
+        total_expense = 0
         
         for row in rows:
+            if row[2] == '합계':
+                total_income = float(row[4]) if row[4] else 0
+                total_expense = float(row[5]) if row[5] else 0
+                continue
+            
             idx = self.list.InsertItem(self.list.GetItemCount(), str(row[0]))
             self.list.SetItem(idx, 1, row[1])
             self.list.SetItem(idx, 2, row[2])
@@ -1189,57 +869,23 @@ class MyFrame(wx.Frame):
             self.list.SetItem(idx, 4, f"{float(row[4]):,.0f}" if row[4] else "0")
             self.list.SetItem(idx, 5, f"{float(row[5]):,.0f}" if row[5] else "0")
             self.list.SetItem(idx, 6, row[6])
-    
-    def OnUpdate(self, event):
-        idx = self.list.GetFirstSelected()
-        if idx == -1:
-            wx.MessageBox("수정할 항목을 선택하세요.", "알림", wx.OK | wx.ICON_WARNING)
-            return
+            
+            if row[2] == '수입':
+                self.list.SetItemTextColour(idx, ColorTheme.INCOME_COLOR)
+            else:
+                self.list.SetItemTextColour(idx, ColorTheme.EXPENSE_COLOR)
         
-        key = self.list.GetItemText(idx, 0)
-        date_str = self.dateCtrl.GetValue().FormatISODate()
+        # 요약 업데이트
+        self.lblIncome.SetLabel(f"{total_income:,.0f}원")
+        self.lblExpense.SetLabel(f"{total_expense:,.0f}원")
         
-        current_tab = self.notebook.GetSelection()
+        balance = total_income - total_expense
+        self.lblBalance.SetLabel(f"{balance:,.0f}원")
         
-        if current_tab == 0:
-            section = '수입'
-            title = self.comboRevenue.GetValue()
-            amount = self.txtRevenue.GetValue()
-            revenue = amount.replace(',', '') if amount else '0'
-            expense = '0'
+        if balance >= 0:
+            self.lblBalance.SetForegroundColour(ColorTheme.INCOME_COLOR)
         else:
-            section = '지출'
-            title = self.comboExpense.GetValue()
-            amount = self.txtExpense.GetValue()
-            revenue = '0'
-            expense = amount.replace(',', '') if amount else '0'
-        
-        remark = self.txtRemark.GetValue()
-        
-        if not title or not amount:
-            wx.MessageBox("모든 필드를 입력하세요.", "입력 오류", wx.OK | wx.ICON_WARNING)
-            return
-        
-        HL_CRUD.update((key, date_str, section, title, revenue, expense, remark))
-        
-        wx.MessageBox("거래가 수정되었습니다.", "수정 완료", wx.OK | wx.ICON_INFORMATION)
-        
-        self.OnSelectAll(None)
-    
-    def OnDelete(self, event):
-        idx = self.list.GetFirstSelected()
-        if idx == -1:
-            wx.MessageBox("삭제할 항목을 선택하세요.", "알림", wx.OK | wx.ICON_WARNING)
-            return
-        
-        if wx.MessageBox("선택한 거래를 삭제하시겠습니까?", "확인",
-                        wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
-            key = self.list.GetItemText(idx, 0)
-            HL_CRUD.delete(key)
-            
-            wx.MessageBox("거래가 삭제되었습니다.", "삭제 완료", wx.OK | wx.ICON_INFORMATION)
-            
-            self.OnSelectAll(None)
+            self.lblBalance.SetForegroundColour(ColorTheme.EXPENSE_COLOR)
     
     def OnLoadToInput(self, event):
         idx = self.list.GetFirstSelected()
